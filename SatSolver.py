@@ -9,6 +9,14 @@ def successeur(Cases, action, case):
     return []
 
 
+def voisin(Cases, cible):
+    for x in Cases:
+        if x in [[cible[0] + 1, cible[1]], [cible[0] - 1, cible[1]], [cible[0], cible[1] + 1],
+                 [cible[0], cible[1] - 1]]:
+            return True
+    return False
+
+
 def get_nombre_variable(Clauses):
     nb_variable = 0
     vars = []
@@ -84,6 +92,13 @@ def sat_solver(infos):
     mapdepart = [var2n[('at', 0, case, entite)] for entite in map.keys() for case in map[entite]]
 
     # goal
+    # a voir si on ne fait que pour t = Tmax
+    goal = [[var2n[('at', t, c1, "H")], var2n[('at', t, c2, "D")]]
+            for t in range(t_max)
+            for c2 in Cases
+            for c1 in [(c2[0] + 1, c2[1]), (c2[0] - 1, c2[1]), (c2[0], c2[1] + 1), (c2[0], c2[1] - 1)]
+            if c1 in Cases
+            ]
 
     # deplacement du hero vers le haut
     # a modifier quand on rajoute les piques car var2n[('at', t, c2, " ")] bloque le deplacement
@@ -146,14 +161,12 @@ def sat_solver(infos):
                                   "attaquerBas", "attaquerGauche", "attaquerDroite"]
                 ]
 
-    goal = []
-
     Clauses = mapdepart + at_least_one_action + at_most_one_action + deplacement_personnage_Haut + deplacement_pierre_haut + deplacement_ennemi_haut + eliminer_ennemi_haut + new_map + goal
 
     return Clauses
 
 
-filename = r"D:\Alex\Etude\Superieur\UTC\Informatique\IA02\Projet\helltaker_ia02\levels\level1.txt"
+filename = r"D:\Alex\Etude\Superieur\UTC\Informatique\IA02\Projet\helltaker\maps\level1.txt"
 # récupération de la grille et de toutes les infos
 infos = grid_from_file(filename)
 print(creation_cnf(sat_solver(infos)))
