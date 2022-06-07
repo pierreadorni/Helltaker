@@ -1,6 +1,6 @@
 from itertools import combinations
-from utils import grid_from_file
 import collections
+from utils import grid_from_file
 
 
 def successeur(Cases, action, case):

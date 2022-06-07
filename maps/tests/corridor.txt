@@ -1,5 +1,5 @@
 Simple corridor
-2
+4
 ###
 # #
 #H#
