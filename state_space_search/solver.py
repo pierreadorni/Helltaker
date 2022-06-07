@@ -3,24 +3,38 @@ from typing import NamedTuple, Tuple, Callable, FrozenSet, List, Dict
 
 
 class PrecondNotMetException(Exception):
-    """ Exception raised when a precondition is not met """
+    """Exception raised when a precondition is not met"""
+
     pass
+
 
 class NoSolutionException(Exception):
-    """ Exception raised when no solution is found """
+    """Exception raised when no solution is found"""
+
     pass
 
-State = NamedTuple("State", [('hero', Tuple[int, int])])
-Map = NamedTuple("Map", [('walls', FrozenSet[Tuple[int,int]]), ("demons", FrozenSet[Tuple[int,int]]), ('max_depth', int)])
-Action = NamedTuple("Action", [
-    ('preconditions', FrozenSet[Callable[[State], bool]]),
-    ('effects', List[Callable[[State], State]]),
-])
+
+State = NamedTuple("State", [("hero", Tuple[int, int])])
+Map = NamedTuple(
+    "Map",
+    [
+        ("walls", FrozenSet[Tuple[int, int]]),
+        ("demons", FrozenSet[Tuple[int, int]]),
+        ("max_depth", int),
+    ],
+)
+Action = NamedTuple(
+    "Action",
+    [
+        ("preconditions", FrozenSet[Callable[[State], bool]]),
+        ("effects", List[Callable[[State], State]]),
+    ],
+)
 
 
 def parse_grid(file_dict: dict) -> (Map, State):
-    """ Parse a grid to a map and a state """
-    grid = file_dict['grid']
+    """Parse a grid to a map and a state"""
+    grid = file_dict["grid"]
     walls = set()
     demons = set()
     hero = None
@@ -33,61 +47,77 @@ def parse_grid(file_dict: dict) -> (Map, State):
             elif char == "H":
                 hero = (j, i)
 
-    return Map(walls=frozenset(walls), demons=frozenset(demons), max_depth=file_dict['max_steps']), State(hero)
+    return Map(
+        walls=frozenset(walls),
+        demons=frozenset(demons),
+        max_depth=file_dict["max_steps"],
+    ), State(hero)
 
 
 def move_top_factory(_map: Map) -> Action:
-    """ Create an action that moves the hero one step up """
+    """Create an action that moves the hero one step up"""
+
     def move_top(state: State) -> State:
-        """ Move the hero one step up """
+        """Move the hero one step up"""
         return State(hero=(state.hero[0], state.hero[1] - 1))
 
     return Action(
-        preconditions=frozenset([
-            lambda s: (s.hero[0], s.hero[1] - 1) not in _map.walls,
-        ]),
+        preconditions=frozenset(
+            [
+                lambda s: (s.hero[0], s.hero[1] - 1) not in _map.walls,
+            ]
+        ),
         effects=[move_top],
     )
 
 
 def move_bottom_factory(_map: Map) -> Action:
-    """ Create an action that moves the hero one step down """
+    """Create an action that moves the hero one step down"""
+
     def move_bottom(state: State) -> State:
-        """ Move the hero one step down """
+        """Move the hero one step down"""
         return State(hero=(state.hero[0], state.hero[1] + 1))
 
     return Action(
-        preconditions=frozenset([
-            lambda s: (s.hero[0], s.hero[1] + 1) not in _map.walls,
-        ]),
+        preconditions=frozenset(
+            [
+                lambda s: (s.hero[0], s.hero[1] + 1) not in _map.walls,
+            ]
+        ),
         effects=[move_bottom],
     )
 
 
 def move_left_factory(_map: Map) -> Action:
-    """ Create an action that moves the hero one step left """
+    """Create an action that moves the hero one step left"""
+
     def move_left(state: State) -> State:
-        """ Move the hero one step left """
+        """Move the hero one step left"""
         return State(hero=(state.hero[0] - 1, state.hero[1]))
 
     return Action(
-        preconditions=frozenset([
-            lambda s: (s.hero[0] - 1, s.hero[1]) not in _map.walls,
-        ]),
+        preconditions=frozenset(
+            [
+                lambda s: (s.hero[0] - 1, s.hero[1]) not in _map.walls,
+            ]
+        ),
         effects=[move_left],
     )
 
 
 def move_right_factory(_map: Map) -> Action:
-    """ Create an action that moves the hero one step right """
+    """Create an action that moves the hero one step right"""
+
     def move_right(state: State) -> State:
-        """ Move the hero one step right """
+        """Move the hero one step right"""
         return State(hero=(state.hero[0] + 1, state.hero[1]))
 
     return Action(
-        preconditions=frozenset([
-            lambda s: (s.hero[0] + 1, s.hero[1]) not in _map.walls,
-        ]),
+        preconditions=frozenset(
+            [
+                lambda s: (s.hero[0] + 1, s.hero[1]) not in _map.walls,
+            ]
+        ),
         effects=[move_right],
     )
 
@@ -100,15 +130,15 @@ actions_factories = {
 }
 
 
-def create_actions(actions_factories: Dict[str, Callable[[Map], Callable]], _map: Map) -> Dict[str, Action]:
-    """ Create actions from actions factories """
-    return {
-        name: factory(_map) for name, factory in actions_factories.items()
-    }
+def create_actions(
+    actions_factories: Dict[str, Callable[[Map], Callable]], _map: Map
+) -> Dict[str, Action]:
+    """Create actions from actions factories"""
+    return {name: factory(_map) for name, factory in actions_factories.items()}
 
 
 def execute(state: State, action: Action) -> State:
-    """ Execute an action on a state, returns the new state """
+    """Execute an action on a state, returns the new state"""
     for precondition in action.preconditions:
         if not precondition(state):
             raise PrecondNotMetException("Precondition not met")
@@ -120,14 +150,16 @@ def execute(state: State, action: Action) -> State:
 
 
 def is_final(state: State, map_: Map) -> bool:
-    """ Check if a state is a final state """
+    """Check if a state is a final state"""
     for demon in map_.demons:
-        if abs(demon[0]-state.hero[0]) + abs(demon[1]-state.hero[1]) == 1:
+        if abs(demon[0] - state.hero[0]) + abs(demon[1] - state.hero[1]) == 1:
             return True
 
 
-def rebuild_path(previous_dict: Dict[State, Tuple[State, str]], final_state: State) -> List[str]:
-    """ Rebuild the path from a dictionary of previous states """
+def rebuild_path(
+    previous_dict: Dict[State, Tuple[State, str]], final_state: State
+) -> List[str]:
+    """Rebuild the path from a dictionary of previous states"""
     path = [final_state]
     actions = []
     while final_state in previous_dict:
@@ -137,8 +169,10 @@ def rebuild_path(previous_dict: Dict[State, Tuple[State, str]], final_state: Sta
     return actions[::-1]
 
 
-def solve(state: State, map_: Map, actions_factories: Dict[str, Callable[[Map], Callable]]) -> List[str]:
-    """ Solve the puzzle """
+def solve(
+    state: State, map_: Map, actions_factories: Dict[str, Callable[[Map], Callable]]
+) -> List[str]:
+    """Solve the puzzle"""
     actions = create_actions(actions_factories, map_)
     queue = [(state, 0)]
     visited = set()
