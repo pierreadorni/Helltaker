@@ -14,7 +14,7 @@ def state_space_search():
 
 def satplan():
     """ Test for satplan """
-    infos = grid_from_file("maps/level1.txt")
+    infos = grid_from_file("maps/tests/corridor.txt")
     cnf = creation_cnf(sat_solver(infos))
     print(cnf)
 
