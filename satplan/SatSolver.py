@@ -164,9 +164,3 @@ def sat_solver(infos):
     Clauses = mapdepart + at_least_one_action + at_most_one_action + deplacement_personnage_Haut + deplacement_pierre_haut + deplacement_ennemi_haut + eliminer_ennemi_haut + new_map + goal
 
     return Clauses
-
-
-filename = r"D:\Alex\Etude\Superieur\UTC\Informatique\IA02\Projet\helltaker\maps\level1.txt"
-# récupération de la grille et de toutes les infos
-infos = grid_from_file(filename)
-print(creation_cnf(sat_solver(infos)))
