@@ -29,7 +29,7 @@ def voisin(Cases, cible):
 def creation_cnf(clauses):
     text = "c === Helltaker SAT solver === \n"
     text += "c\n"
-    text += f"p cnf {len(clauses[0])} {clauses[1]} \n"
+    text += f"p cnf {len(clauses[0])} {len(clauses[1])} \n"
     for clause in clauses[0]:
         if type(clause) == list:
             for var in clause:
@@ -333,10 +333,7 @@ def sat_solver(infos):
         + goal
     )
 
-    print(var2n)
-    print(n2var[78])
-    resultat = [Clauses, len(var2n)]
-    return resultat
+    return [Clauses, var2n, n2var]
 
 
 def lecture_solus(file):
@@ -360,9 +357,31 @@ def solus_clause(clauses, solution):
     clause_vraie = []
     liste_clauses = lecture_solus(solution)
     for i in range(len(liste_clauses)):
-        # read liste_clauses[i] line in file
         with open(clauses, "r") as f:
             line = f.readlines()[i + 3]
             clause_vraie.append(line)
-    print(clause_vraie)
     return clause_vraie
+
+
+def exam(clauses, solution, n2var):
+    solus = solus_clause(clauses, solution)
+    clause = ""
+    actions = []
+    for i in range(len(solus)):
+        for char in range(len(solus[i])):
+            if solus[i][char].isdigit() and solus[i][char] != "0":
+                if solus[i][char - 1] == " ":
+                    while solus[i][char].isdigit():
+                        clause += solus[i][char]
+                        char += 1
+                    actions.append(int(clause))
+                    clause = ""
+    return solutionner(actions, n2var)
+
+
+def solutionner(actions, n2var):
+    solution = []
+    for i in range(len(actions)):
+        solution.append(n2var[actions[i]])
+    print(solution)
+    return solution
