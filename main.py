@@ -1,13 +1,17 @@
 from utils import grid_from_file
-from satplan.SatSolver import creation_cnf, sat_solver
+from state_space_search.solver import *
+from satplan.SatSolver import creation_cnf, sat_solver, exam
+from pprint import pprint
+import subprocess
 
 
-def satplan():
-    """Test for satplan"""
-    infos = grid_from_file("maps/tests/corridor.txt")
-    cnf = creation_cnf(sat_solver(infos))
-    print(cnf)
+def state_space_search():
+    """Test for state space search"""
+    level = grid_from_file("maps/tests/corridor.txt")
+    map_, state = parse_grid(level)
+    states = solve(state, map_, actions_factories)
+    pprint(states)
 
 
 if __name__ == "__main__":
-    satplan()
+    state_space_search()

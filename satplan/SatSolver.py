@@ -1,5 +1,4 @@
 from itertools import combinations
-from utils import grid_from_file
 import collections
 
 
@@ -27,27 +26,11 @@ def voisin(Cases, cible):
     return False
 
 
-def get_nombre_variable(Clauses):
-    nb_variable = 0
-    vars = []
-    for clause in Clauses:
-        if type(clause) == list:
-            for var in clause:
-                if var not in vars:
-                    vars.append(var)
-                    nb_variable += 1
-        else:
-            if clause not in vars:
-                vars.append(clause)
-                nb_variable += 1
-    return nb_variable
-
-
 def creation_cnf(clauses):
     text = "c === Helltaker SAT solver === \n"
     text += "c\n"
-    text += f"p cnf {len(clauses)} {get_nombre_variable(clauses)} \n"
-    for clause in clauses:
+    text += f"p cnf {len(clauses[0])} {len(clauses[1])} \n"
+    for clause in clauses[0]:
         if type(clause) == list:
             for var in clause:
                 text += f"{var} "
@@ -118,8 +101,8 @@ def deplacer_personnage_Gauche(t_max, Cases, var2n):
     contrainte = [
         [
             var2n[("do", t, "gauche")],
-            var2n[("at", t, c1, "G")],
-            var2n[("at", t + 1, c2, "G")],
+            var2n[("at", t, c1, "H")],
+            var2n[("at", t + 1, c2, "H")],
             var2n[("at", t, c2, " ")],
         ]
         for t in range(t_max)
@@ -149,14 +132,32 @@ def deplacer_pierre_Haut(t_max, Cases, var2n):
         [
             var2n[("do", t, "pousserHaut")],
             var2n[("at", t, c1, "H")],
+            var2n[("at", t + 1, c1, "H")],
             var2n[("at", t, (c1[0], c1[1] + 1), "B")],
-            var2n[("at", t + 1, (c1[0], c1[1] + 2), " ")],
+            var2n[("at", t + 1, (c1[0], c1[1] + 1), " ")],
             var2n[("at", t + 1, (c1[0], c1[1] + 2), "B")],
         ]
         for t in range(t_max)
         for c1 in Cases
-        if (c1[0], c1[1] + 2) in Cases
         if (c1[0], c1[1] + 1) in Cases
+        if (c1[0], c1[1] + 2) in Cases
+    ]
+    return contrainte
+
+
+def deplacer_pierre_Bas(t_max, Cases, var2n):
+    contrainte = [
+        [
+            var2n[("do", t, "pousserBas")],
+            var2n[("at", t, c1, "B")],
+            var2n[("at", t, (c1[0], c1[1] - 1), "H")],
+            var2n[("at", t + 1, (c1[0], c1[1] - 1), " ")],
+            var2n[("at", t + 1, (c1[0], c1[1] - 2), "H")],
+        ]
+        for t in range(t_max)
+        for c1 in Cases
+        if (c1[0], c1[1] - 2) in Cases
+        if (c1[0], c1[1] - 1) in Cases
     ]
     return contrainte
 
@@ -167,8 +168,8 @@ def deplacer_ennemi_Haut(t_max, Cases, var2n):
             var2n[("do", t, "attaquerHaut")],
             var2n[("at", t, c1, "H")],
             var2n[("at", t, (c1[0], c1[1] + 1), "M")],
-            var2n[("at", t + 1, (c1[0], c1[1] + 2), " ")],
-            var2n[("at", t + 1, (c1[0], c1[1] + 2), "B")],
+            var2n[("at", t, (c1[0], c1[1] + 2), " ")],
+            var2n[("at", t + 1, (c1[0], c1[1] + 2), "M")],
         ]
         for t in range(t_max)
         for c1 in Cases
@@ -187,7 +188,6 @@ def eliminer_ennemi_Haut(t_max, Cases, var2n):
         ]
         for t in range(t_max)
         for c1 in Cases
-        if (c1[0], c1[1] + 2) not in Cases
         if (c1[0], c1[1] + 1) in Cases
     ]
     return contrainte
@@ -283,6 +283,7 @@ def sat_solver(infos):
     ]
 
     var2n = {v: i + 1 for i, v in enumerate(do_vars + at_vars)}
+    n2var = {n: v for v, n in var2n.items()}
 
     at_least_one_action = [[var2n[("do", t, a)] for a in Actions] for t in range(t_max)]
     at_most_one_action = [
@@ -302,8 +303,12 @@ def sat_solver(infos):
 
     # a modifier quand on rajoute les piques car var2n[('at', t, c2, " ")] bloque le deplacement
     deplacement_personnage_Haut = deplacer_personnage_Haut(t_max, Cases, var2n)
+    deplacement_personnage_Bas = deplacer_personnage_Bas(t_max, Cases, var2n)
+    deplacement_personnage_Gauche = deplacer_personnage_Gauche(t_max, Cases, var2n)
+    deplacement_personnage_Droite = deplacer_personnage_Droite(t_max, Cases, var2n)
 
     deplacement_pierre_Haut = deplacer_pierre_Haut(t_max, Cases, var2n)
+    deplacement_pierre_Bas = deplacer_pierre_Bas(t_max, Cases, var2n)
 
     deplacement_ennemi_haut = deplacer_ennemi_Haut(t_max, Cases, var2n)
 
@@ -318,11 +323,66 @@ def sat_solver(infos):
         + at_least_one_action
         + at_most_one_action
         + deplacement_personnage_Haut
+        + deplacement_personnage_Bas
+        + deplacement_personnage_Gauche
+        + deplacement_personnage_Droite
         + deplacement_pierre_Haut
+        + deplacement_pierre_Bas
         + deplacement_ennemi_haut
         + elimination_ennemi_haut
         + nouvelle_carte
         + goal
     )
 
-    return Clauses
+    return [Clauses, var2n, n2var]
+
+
+def lecture_solus(file):
+    with open(file, "r") as f:
+        line = f.readlines()[2]
+    solus = []
+    clause = ""
+    for char in range(len(line)):
+        if line[char].isdigit():
+            if line[char - 1] == " ":
+                while line[char].isdigit():
+                    clause += line[char]
+                    char += 1
+                solus.append(clause)
+                clause = ""
+    solus.pop()
+    return solus
+
+
+def solus_clause(clauses, solution):
+    clause_vraie = []
+    liste_clauses = lecture_solus(solution)
+    for i in range(len(liste_clauses)):
+        with open(clauses, "r") as f:
+            line = f.readlines()[i + 3]
+            clause_vraie.append(line)
+    return clause_vraie
+
+
+def exam(clauses, solution, n2var):
+    solus = solus_clause(clauses, solution)
+    clause = ""
+    actions = []
+    for i in range(len(solus)):
+        for char in range(len(solus[i])):
+            if solus[i][char].isdigit() and solus[i][char] != "0":
+                if solus[i][char - 1] == " ":
+                    while solus[i][char].isdigit():
+                        clause += solus[i][char]
+                        char += 1
+                    actions.append(int(clause))
+                    clause = ""
+    return solutionner(actions, n2var)
+
+
+def solutionner(actions, n2var):
+    solution = []
+    for i in range(len(actions)):
+        solution.append(n2var[actions[i]])
+    print(solution)
+    return solution
