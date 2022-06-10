@@ -268,7 +268,7 @@ def sat_solver(infos):
         "pousserHaut",
         "pousserBas",
         "pousserGauche",
-        "pousserDroite"
+        "pousserDroite",
     )
     t_max = infos["max_steps"]
     map = create_map(infos)
