@@ -29,7 +29,7 @@ def voisin(Cases, cible):
 def creation_cnf(clauses):
     text = "c === Helltaker SAT solver === \n"
     text += "c\n"
-    text += f"p cnf {len(clauses[0])} {len(clauses[1])} \n"
+    text += f"p cnf {len(clauses[1])} {len(clauses[0])} \n"
     for clause in clauses[0]:
         if type(clause) == list:
             for var in clause:
@@ -269,7 +269,7 @@ def sat_solver(infos):
         "pousserHaut",
         "pousserBas",
         "pousserGauche",
-        "pousserDroite",
+        "pousserDroite"
     )
     t_max = infos["max_steps"]
     map = create_map(infos)
@@ -288,8 +288,8 @@ def sat_solver(infos):
     at_least_one_action = [[var2n[("do", t, a)] for a in Actions] for t in range(t_max)]
     at_most_one_action = [
         [-var2n[("do", t, a1)], -var2n[("do", t, a2)]]
-        for a1, a2 in combinations(Actions, 2)
         for t in range(t_max)
+        for a1, a2 in combinations(Actions, 2)
     ]
 
     # on crée les clauses logique des positions de départ
@@ -354,35 +354,10 @@ def lecture_solus(file):
     return solus
 
 
-def solus_clause(clauses, solution):
-    clause_vraie = []
-    liste_clauses = lecture_solus(solution)
-    for i in range(len(liste_clauses)):
-        with open(clauses, "r") as f:
-            line = f.readlines()[i + 3]
-            clause_vraie.append(line)
-    return clause_vraie
-
-
-def exam(clauses, solution, n2var):
-    solus = solus_clause(clauses, solution)
-    clause = ""
-    actions = []
-    for i in range(len(solus)):
-        for char in range(len(solus[i])):
-            if solus[i][char].isdigit() and solus[i][char] != "0":
-                if solus[i][char - 1] == " ":
-                    while solus[i][char].isdigit():
-                        clause += solus[i][char]
-                        char += 1
-                    actions.append(int(clause))
-                    clause = ""
-    return solutionner(actions, n2var)
-
-
-def solutionner(actions, n2var):
+def solutionner(solution, n2var):
+    actions = lecture_solus(solution)
     solution = []
     for i in range(len(actions)):
-        solution.append(n2var[actions[i]])
+        solution.append(n2var[int(actions[i])])
     print(solution)
     return solution
