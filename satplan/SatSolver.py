@@ -3,15 +3,22 @@ import collections
 
 
 def successeur(Cases, action, case):
-    if action == "haut" and (case[0], case[1] + 1) in Cases:
-        return [(case[0], case[1] + 1)]
-    elif action == "bas" and (case[0], case[1] - 1) in Cases:
-        return [(case[0], case[1] - 1)]
+    if action == "bas" and (case[0], case[1] + 1) in Cases:
+            return ((case[0], case[1] + 1))
+    elif action == "haut" and (case[0], case[1] - 1) in Cases:
+        return ((case[0], case[1] - 1))
     elif action == "gauche" and (case[0] - 1, case[1]) in Cases:
-        return [(case[0] - 1, case[1])]
+        return ((case[0] - 1, case[1]))
     elif action == "droite" and (case[0] + 1, case[1]) in Cases:
-        return [(case[0] + 1, case[1])]
+        return ((case[0] + 1, case[1]))
     return []
+
+
+def get_value(cible, n2var):
+    if cible in n2var:
+        return n2var[cible]
+    else:
+        return 0
 
 
 def voisin(Cases, cible):
@@ -49,13 +56,22 @@ def get_target(action):
     return None
 
 
+def get_actions(target):
+    liste_target =["haut", "bas", "gauche", "droite"]
+    if "M" in target:
+        liste_target += ["attaquerHaut", "attaquerBas", "attaquerGauche", "attaquerDroite", "tuerHaut", "tuerBas", "tuerGauche", "tuerDroite"]
+    if "B" in liste_target:
+        liste_target+= ["pousserHaut", "pousserBas", "pousserGauche", "pousserDroite"]
+    return liste_target
+
+
 def create_map(infos):  # map est un dict contenant les coordonnées des obstacles
     map = collections.defaultdict(list)
     for i in range(infos["m"]):
         for j in range(infos["n"]):
             target = infos["grid"][i][j]
             if target != "#":  # on ne représente pas les murs
-                map[target].append((i, j))
+                map[target].append((j, i))
     return map
 
 
@@ -67,62 +83,19 @@ def create_Cases(map):  # on crée une liste de tous les emplacements occupables
     return Cases
 
 
-def deplacer_personnage_Haut(t_max, Cases, var2n):
+def deplacer_personnage(t_max,Cases,var2n):
     contrainte = [
         [
-            var2n[("do", t, "haut")],
+            var2n[("do", t, direction)],
             var2n[("at", t, c1, "H")],
+            var2n[("at", t, c2, " ")],
             var2n[("at", t + 1, c2, "H")],
-            var2n[("at", t, c2, " ")],
+            var2n[("at", t + 1, c1, " ")]
         ]
         for t in range(t_max)
-        for c1 in Cases
-        for c2 in successeur(Cases, "haut", c1)
-    ]
-    return contrainte
-
-
-def deplacer_personnage_Bas(t_max, Cases, var2n):
-    contrainte = [
-        [
-            var2n[("do", t, "bas")],
-            var2n[("at", t, c1, "B")],
-            var2n[("at", t + 1, c2, "B")],
-            var2n[("at", t, c2, " ")],
-        ]
-        for t in range(t_max)
-        for c1 in Cases
-        for c2 in successeur(Cases, "bas", c1)
-    ]
-    return contrainte
-
-
-def deplacer_personnage_Gauche(t_max, Cases, var2n):
-    contrainte = [
-        [
-            var2n[("do", t, "gauche")],
-            var2n[("at", t, c1, "H")],
-            var2n[("at", t + 1, c2, "H")],
-            var2n[("at", t, c2, " ")],
-        ]
-        for t in range(t_max)
-        for c1 in Cases
-        for c2 in successeur(Cases, "gauche", c1)
-    ]
-    return contrainte
-
-
-def deplacer_personnage_Droite(t_max, Cases, var2n):
-    contrainte = [
-        [
-            var2n[("do", t, "droite")],
-            var2n[("at", t, c1, "D")],
-            var2n[("at", t + 1, c2, "D")],
-            var2n[("at", t, c2, " ")],
-        ]
-        for t in range(t_max)
-        for c1 in Cases
-        for c2 in successeur(Cases, "droite", c1)
+        for c1,c2 in combinations(Cases,2)
+        for direction in ["haut", "bas", "gauche", "droite"]
+        if c2 == successeur(Cases, direction, c1)
     ]
     return contrainte
 
@@ -193,58 +166,77 @@ def eliminer_ennemi_Haut(t_max, Cases, var2n):
     return contrainte
 
 
-def nouvelle_map(map, t_max, Actions, Cases, var2n):
-    nouvelle_map = [
+def nouvelle_map(t_max, Actions, Cases, var2n, position_demon):
+
+    # si le hero ne bouge pas, il bouge pas
+    hero = [
         [
-            var2n[("at", t, c, entite)],
-            var2n[("at", t + 1, c, entite)],
-            var2n[("do", t, action)],
+            var2n[('at', t, c, "H")],
+            -var2n[('do', t, "haut")],
+            -var2n[('do', t, "bas")],
+            -var2n[('do', t, "gauche")],
+            -var2n[('do', t, "droite")],
+            var2n[('at', t + 1, c, "H")]
         ]
         for t in range(t_max)
         for c in Cases
-        for entite in map.keys()
-        for action in Actions
-        if entite != get_target(action)
     ]
 
+<<<<<<< HEAD
     # on fait réapparaître les entités avec un rapport avec
     # l'action, mais qui n'en sont pas la cible (par ex les mobs non ciblés)
     nouvelle_map += [
+=======
+    # le hero est dans une seule case a la fois
+    hero += [
+>>>>>>> 657ce39 (nouveau code SatSolever2.py)
         [
-            var2n[("at", t, c, entite)],
-            var2n[("at", t + 1, c, entite)],
-            var2n[("do", t, action)],
+            var2n[('at', t, c1, "H")],
+            -var2n[('at', t, c2, "H")]
+        ]
+        for t in range(1,t_max)
+        for c1, c2 in combinations(Cases, 2)
+    ]
+
+
+
+    # la demonne ne bouge pas
+    demon = [
+        [
+            var2n[("at", t, position_demon, "D")]
         ]
         for t in range(t_max)
-        for c in Cases
-        for entite in map.keys()
-        for action in Actions
-        if entite == get_target(action)
-        if action
-        not in [
-            "pousserHaut",
-            "pousserBas",
-            "pousserGauche",
-            "pousserDroite",
-            "attaquerHaut",
-            "attaquerBas",
-            "attaquerGauche",
-            "attaquerDroite",
-        ]
     ]
+
+# si le hero ne va pas dans une case vide, elle reste vide
+    case_simple = [
+        [
+            var2n[("do",t,direction)],
+            var2n[("at", t, c2, "H")],
+            var2n[("at", t, c1, " ")],
+            var2n[('at', t + 1, c1, " ")]
+        ]
+        for direction in ["haut", "bas", "gauche", "droite"]
+        for t in range(t_max)
+        for c1 in Cases
+        for c2 in Cases
+        if c1 != successeur(Cases, direction, c2)
+        ]
+
+    nouvelle_map = hero + case_simple + demon
+
     return nouvelle_map
 
 
-def objectif(t_max, Cases, var2n):
+def objectif(t_max, Cases, var2n, position_demon):
     objectif = [
-        [var2n[("at", t, c1, "H")], var2n[("at", t, c2, "D")]]
+        [var2n[("at", t, c1, "H")], var2n[("at", t, position_demon, "D")]]
         for t in range(t_max)
-        for c2 in Cases
         for c1 in [
-            (c2[0] + 1, c2[1]),
-            (c2[0] - 1, c2[1]),
-            (c2[0], c2[1] + 1),
-            (c2[0], c2[1] - 1),
+            (position_demon[0] + 1, position_demon[1]),
+            (position_demon[0] - 1, position_demon[1]),
+            (position_demon[0], position_demon[1] + 1),
+            (position_demon[0], position_demon[1] - 1),
         ]
         if c1 in Cases
     ]
@@ -252,27 +244,11 @@ def objectif(t_max, Cases, var2n):
 
 
 def sat_solver(infos):
-    # a voir si on fusionne attaquerHaut et pousserHaut
-    Actions = (
-        "haut",
-        "bas",
-        "gauche",
-        "droite",
-        "attaquerHaut",
-        "attaquerBas",
-        "attaquerGauche",
-        "attaquerDroite",
-        "tuerHaut",
-        "tuerBas",
-        "tuerGauche",
-        "tuerDroite",
-        "pousserHaut",
-        "pousserBas",
-        "pousserGauche",
-        "pousserDroite",
-    )
     t_max = infos["max_steps"]
     map = create_map(infos)
+
+    Actions = get_actions(map.keys())
+
     Cases = create_Cases(map)
     do_vars = [("do", t, a) for t in range(t_max) for a in Actions]
     at_vars = [
@@ -296,43 +272,35 @@ def sat_solver(infos):
     mapdepart = [
         var2n[("at", 0, case, entite)] for entite in map.keys() for case in map[entite]
     ]
-
     # goal
     # a voir si on ne fait que pour t = Tmax
-    goal = objectif(t_max, Cases, var2n)
+
+    #on recupére la position du demon
+    for x in mapdepart:
+        if n2var[x][3] == "D":
+            position_demon = n2var[x][2]
+
+    goal = objectif(t_max, Cases, var2n,position_demon)
 
     # a modifier quand on rajoute les piques car var2n[('at', t, c2, " ")] bloque le deplacement
-    deplacement_personnage_Haut = deplacer_personnage_Haut(t_max, Cases, var2n)
-    deplacement_personnage_Bas = deplacer_personnage_Bas(t_max, Cases, var2n)
-    deplacement_personnage_Gauche = deplacer_personnage_Gauche(t_max, Cases, var2n)
-    deplacement_personnage_Droite = deplacer_personnage_Droite(t_max, Cases, var2n)
+    deplacement_personnage = deplacer_personnage(t_max, Cases, var2n)
 
-    deplacement_pierre_Haut = deplacer_pierre_Haut(t_max, Cases, var2n)
-    deplacement_pierre_Bas = deplacer_pierre_Bas(t_max, Cases, var2n)
-
-    deplacement_ennemi_haut = deplacer_ennemi_Haut(t_max, Cases, var2n)
-
-    elimination_ennemi_haut = eliminer_ennemi_Haut(t_max, Cases, var2n)
 
     # mise a jour de la carte pour les element inchangés à un nouveau t
     # on fait reappaaraitre en t+1 toutes les entités sans rapport avec l'action
-    nouvelle_carte = nouvelle_map(map, t_max, Actions, Cases, var2n)
+
+
+    nouvelle_carte = nouvelle_map(t_max, Actions, Cases, var2n, position_demon)
 
     Clauses = (
-        mapdepart
-        + at_least_one_action
-        + at_most_one_action
-        + deplacement_personnage_Haut
-        + deplacement_personnage_Bas
-        + deplacement_personnage_Gauche
-        + deplacement_personnage_Droite
-        + deplacement_pierre_Haut
-        + deplacement_pierre_Bas
-        + deplacement_ennemi_haut
-        + elimination_ennemi_haut
-        + nouvelle_carte
-        + goal
+            mapdepart
+            + at_least_one_action
+            + at_most_one_action
+            + deplacement_personnage
+            + nouvelle_carte
+            + goal
     )
+    print(Cases)
 
     return [Clauses, var2n, n2var]
 
