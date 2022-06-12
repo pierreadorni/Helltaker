@@ -5,6 +5,7 @@ import collections
 
 # In[1]:
 
+
 def creationLaby(infos):
     map = collections.defaultdict(list)
     for i in range(infos["m"]):
@@ -12,23 +13,27 @@ def creationLaby(infos):
             target = infos["grid"][i][j]
             map["board"].append((j, i))
             if target == "D":  # on ne représente pas les murs
-                map["final"].append((j + 1, i))
-                map["final"].append((j - 1, i))
-                map["final"].append((j, i + 1))
-                map["final"].append((j, i - 1))
                 map["demon"].append((j, i))
             elif target == "#":
                 map["wall"].append((j, i))
+
             elif target == "B":
-                map["boxs"].append((j, i))
+                map["box"].append((j, i))
             elif target == "M":
                 map["mob"].append((j, i))
+
             elif target == "H":
                 map["initial"].append((j, i))
+    for coord in map["demon"]:
+        if (coord[0] + 1, coord[1]) not in map["wall"]:
+            map["final"].append((coord[0] + 1, coord[1]))
+        if (coord[0] - 1, coord[1]) not in map["wall"]:
+            map["final"].append((coord[0] - 1, coord[1]))
+        if (coord[0], coord[1] + 1) not in map["wall"]:
+            map["final"].append((coord[0], coord[1] + 1))
+        if (coord[0], coord[1] - 1) not in map["wall"]:
+            map["final"].append((coord[0], coord[1] - 1))
     return map
-
-
-
 
 
 # In[2]:
@@ -41,12 +46,24 @@ def vocabulary(laby, t_max):
     dir_vars = [("do_d", t, a) for t in range(t_max) for a in directions]
     at_vars = [("at", t, c) for t in range(t_max + 1) for c in laby["board"]]
     wall_vars = [("wall", t, c) for t in range(t_max + 1) for c in laby["board"]]
+
     box_vars = [("box", t, c) for t in range(t_max + 1) for c in laby["board"]]
     mob_vars = [("mob", t, c) for t in range(t_max + 1) for c in laby["board"]]
+
     demon_vars = [("demon", t, c) for t in range(t_max + 1) for c in laby["board"]]
 
-    return {v: i + 1 for i, v in enumerate(verb_vars + dir_vars + at_vars + wall_vars + box_vars + mob_vars + demon_vars)}
-
+    return {
+        v: i + 1
+        for i, v in enumerate(
+            verb_vars
+            + dir_vars
+            + at_vars
+            + wall_vars
+            + box_vars
+            + mob_vars
+            + demon_vars
+        )
+    }
 
 
 # In[3]:
@@ -75,30 +92,28 @@ def clauses_exactly_one_action(var2n, t_max):
     return at_least_one_dir + at_most_one_dir + at_least_one_verb + at_most_one_verb
 
 
-
-
 # In[4]:
 
 
 def clauses_initial_state(var2n, laby):
     cl = []
     for c in laby["board"]:
-        if c == laby["initial"]:
+        if c in laby["initial"]:
             cl.append([var2n[("at", 0, c)]])
         else:
             cl.append([-var2n[("at", 0, c)]])
     for c in laby["board"]:
-        if c in laby["walls"]:
+        if c in laby["wall"]:
             cl.append([var2n[("wall", 0, c)]])
         else:
             cl.append([-var2n[("wall", 0, c)]])
     for c in laby["board"]:
-        if c in laby["boxs"]:
+        if c in laby["box"]:
             cl.append([var2n[("box", 0, c)]])
         else:
             cl.append([-var2n[("box", 0, c)]])
     for c in laby["board"]:
-        if c in laby["mobs"]:
+        if c in laby["mob"]:
             cl.append([var2n[("mob", 0, c)]])
         else:
             cl.append([-var2n[("mob", 0, c)]])
@@ -108,7 +123,6 @@ def clauses_initial_state(var2n, laby):
         else:
             cl.append([-var2n[("demon", 0, c)]])
     return cl
-
 
 
 # In[6]:
@@ -127,35 +141,40 @@ def succ(at, direction, board):
 def clauses_successor_from_given_position(var2n, laby, t_max, position):
     board = laby["board"]
     directions = ("left", "right", "up", "down")
+
     # les murs restent immobiles
     cl = [
-        [var2n[("wall", t, position)], -var2n[("wall", t + 1, position)]]
+        [
+            -var2n[("wall", t, position)],
+            var2n[("wall", t + 1, position)],
+        ]
         for t in range(t_max)
     ]
 
     # les demons ne bougent pas
-    cl = [
-        [var2n[("demon", t, position)], -var2n[("demon", t + 1, position)]]
-        for t in range(t_max)
-    ]
-
-    # les boîtes n'apparaissent pas
     cl += [
-        [var2n[("box", t, position)], -var2n[("box", t + 1, position)]]
-        for t in range(t_max)
-    ]
-
-    # les monstres n'apparaissent pas
-    cl += [
-        [var2n[("mob", t, position)], -var2n[("mob", t + 1, position)]]
+        [
+            -var2n[("demon", t, position)],
+            var2n[("demon", t + 1, position)],
+        ]
         for t in range(t_max)
     ]
 
     Successors = {a: succ(position, a, board) for a in directions}
 
+    # les boites n'apparaissent pas sans avoir de boite à coté
+    cl = [
+        [var2n[("box", t, position)], -var2n[("box", t, c)]]
+        for t in range(t_max)
+        for c in board
+        if c in Successors.values()
+    ]
     # transitions impossibles, entre deux cases *distinctes* non voisines
     cl += [
-        [-var2n[("at", t, position)], -var2n[("at", t + 1, c)]]
+        [
+            -var2n[("at", t, position)],
+            -var2n[("at", t + 1, c)],
+        ]
         for t in range(t_max)
         for c in board
         if not (c in Successors.values())
@@ -170,31 +189,28 @@ def clauses_successor_from_given_position(var2n, laby, t_max, position):
         ]
         for t in range(t_max)
     ]
+    # push impossible si c'est un wall
+    cl += [
+        [
+            -var2n[("do_v", t, "push")],
+            -var2n[("at", t, position)],
+            var2n[("wall", t, c)],
+        ]
+        for t in range(t_max)
+        for c in board
+        if c in Successors.values()
+        if c != position
+    ]
     # directions faisant sortir du plateau interdites
     cl += [
-        [-var2n[("at", t, position)], -var2n[("do_d", t, a)]]
+        [
+            -var2n[("at", t, position)],
+            -var2n[("do_d", t, a)],
+        ]
         for t in range(t_max)
         for a, c in Successors.items()
         if not (c in board)
     ]
-    # les murs non adjacents à la position ne disparaissent pas
-    cl += [
-        [-var2n[("at", t, position)], -var2n[("wall", t, c)], var2n[("wall", t + 1, c)]]
-        for t in range(t_max)
-        for c in board
-        if not (c in Successors.values())
-        if c != position
-    ]
-    # les demons non adjacents à la position ne disparaissent pas
-
-    cl += [
-        [-var2n[("at", t, position)], -var2n[("demon", t, c)], var2n[("demon", t + 1, c)]]
-        for t in range(t_max)
-        for c in board
-        if not (c in Successors.values())
-        if c != position
-    ]
-
     # les boites non adjacents à la position ne disparaissent pas
     cl += [
         [-var2n[("at", t, position)], -var2n[("box", t, c)], var2n[("box", t + 1, c)]]
@@ -203,7 +219,6 @@ def clauses_successor_from_given_position(var2n, laby, t_max, position):
         if not (c in Successors.values())
         if c != position
     ]
-
     # les monstress non adjacents à la position ne disparaissent pas
     cl += [
         [-var2n[("at", t, position)], -var2n[("mob", t, c)], var2n[("mob", t + 1, c)]]
@@ -212,7 +227,6 @@ def clauses_successor_from_given_position(var2n, laby, t_max, position):
         if not (c in Successors.values())
         if c != position
     ]
-
     # On ne déplace pas les boite que l'on ne pousse pas
     cl += [
         [
@@ -278,11 +292,20 @@ def clauses_successor_from_given_position(var2n, laby, t_max, position):
                 ]
                 for t in range(t_max)
             ]
-            # on ne fonce pas dans les murs
+            # on ne fonce/pousse pas dans les murs
             cl += [
                 [
                     -var2n[("at", t, position)],
                     -var2n[("do_v", t, "move")],
+                    -var2n[("do_d", t, a)],
+                    -var2n[("wall", t + 1, c)],
+                ]
+                for t in range(t_max)
+            ]
+            cl += [
+                [
+                    -var2n[("at", t, position)],
+                    -var2n[("do_v", t, "push")],
                     -var2n[("do_d", t, a)],
                     -var2n[("wall", t + 1, c)],
                 ]
@@ -307,13 +330,21 @@ def clauses_successor_from_given_position(var2n, laby, t_max, position):
                     -var2n[("mob", t + 1, c)],
                 ]
                 for t in range(t_max)
-
             ]
-            # on ne fonce pas dans les demons
+            # on ne fonce/pousse pas dans les demons
             cl += [
                 [
                     -var2n[("at", t, position)],
                     -var2n[("do_v", t, "move")],
+                    -var2n[("do_d", t, a)],
+                    -var2n[("demon", t + 1, c)],
+                ]
+                for t in range(t_max)
+            ]
+            cl += [
+                [
+                    -var2n[("at", t, position)],
+                    -var2n[("do_v", t, "push")],
                     -var2n[("do_d", t, a)],
                     -var2n[("demon", t + 1, c)],
                 ]
@@ -331,7 +362,6 @@ def clauses_successor_from_given_position(var2n, laby, t_max, position):
                 for c1 in Successors.values()
                 if c1 != c and c1 in board
             ]
-
             # action : Pousser -----------------------------------------------------------------------------------------
 
             # on pousse face à une boite
@@ -344,17 +374,33 @@ def clauses_successor_from_given_position(var2n, laby, t_max, position):
                 ]
                 for t in range(t_max)
             ]
+            # il n'y a rien derière la boite
+
+            # a faire ................................
+
             # la boite poussée se déplace
             cl += [
                 [
                     -var2n[("at", t, position)],
                     -var2n[("do_v", t, "push")],
                     -var2n[("do_d", t, a)],
+                    -var2n[("box", t, c)],
                     var2n[("box", t + 1, c1)],
                 ]
                 for t in range(t_max)
                 for c1 in Successors.values()
                 if c1 != c and c1 in board
+            ]
+            # la boite poussée disparait en t
+            cl += [
+                [
+                    -var2n[("at", t, position)],
+                    -var2n[("do_v", t, "push")],
+                    -var2n[("do_d", t, a)],
+                    -var2n[("box", t, c)],
+                    -var2n[("box", t + 1, c)],
+                ]
+                for t in range(t_max)
             ]
             # les autres boites adjacents subsistent
             cl += [
@@ -385,12 +431,10 @@ def clauses_successor_from_given_position(var2n, laby, t_max, position):
                     -var2n[("at", t, position)],
                     -var2n[("do_v", t, "push")],
                     -var2n[("do_d", t, a)],
-                    var2n[("wall", t, c1)],
-                    var2n[("mob", t + 1, c1)],
+                    var2n[("wall", t, c)],
+                    var2n[("mob", t + 1, c)],
                 ]
                 for t in range(t_max)
-                for c1 in Successors.values()
-                if c1 != c and c1 in board
             ]
             # le monstre poussé dans un mur meurt
             cl += [
@@ -398,12 +442,10 @@ def clauses_successor_from_given_position(var2n, laby, t_max, position):
                     -var2n[("at", t, position)],
                     -var2n[("do_v", t, "push")],
                     -var2n[("do_d", t, a)],
-                    -var2n[("wall", t, c1)],
+                    -var2n[("wall", t, c)],
                     -var2n[("mob", t + 1, c)],
                 ]
                 for t in range(t_max)
-                for c1 in Successors.values()
-                if c1 != c and c1 in board
             ]
             # les autres monstres subsistent
             cl += [
@@ -417,9 +459,8 @@ def clauses_successor_from_given_position(var2n, laby, t_max, position):
                 for c1 in Successors.values()
                 if c1 != c and c1 in board
             ]
+
     return cl
-
-
 
 
 # In[7]:
@@ -430,17 +471,23 @@ def sat_laby2(laby, t_max):
     clauses = clauses_exactly_one_action(var2n, t_max) + clauses_initial_state(
         var2n, laby
     )
+
     for c in laby["board"]:
         clauses += clauses_successor_from_given_position(var2n, laby, t_max, c)
 
     if type(laby["final"]) == list:
+        x = laby["final"]
         for c in laby["final"]:
-            clauses.append([var2n[("at", t_max, c)]])
+
+            final_states = [x for x in laby["final"] if x != c]
+            Tclauses = [var2n[("at", t_max, c)]]
+            for state in final_states:
+                Tclauses += [-var2n[("at", t_max, state)]]
+            clauses += [Tclauses]
     else:
         clauses.append([var2n[("at", t_max, laby["final"])]])
 
     return var2n, clauses
-
 
 
 # In[9]:
@@ -482,25 +529,16 @@ def exec_gophersat(filename: str, cmd: str = "gophersat", encoding: str = "utf8"
 
 
 def solve_laby2(infos):
-    t_max = infos["max_steps"]
+    t_max1 = infos["max_steps"] + 1
     laby = creationLaby(infos)
-    print(laby)
-
-    for t in range(1, t_max):
-        v2n, cl = sat_laby2(laby, t)
+    for t_max in range(t_max1):
+        v2n, cl = sat_laby2(laby, t_max)
         n2v = {i: v for v, i in v2n.items()}
         dimacs = clauses_to_dimacs(cl, len(v2n))
-        filename = f"laby2_{t!s}.cnf"
+        filename = f"laby2_{t_max!s}.cnf"
         write_dimacs_file(dimacs, filename)
         sat, model = exec_gophersat(filename)
         if sat:
-            print( [n2v[i] for i in model if i > 0 and n2v[i][0] in ("do_d", "do_v")])
+            print([n2v[i] for i in model if i > 0])
         else:
-            print("pas de plan de taille", t)
-
-
-
-# In[ ]:
-
-
-# In[ ]:
+            print("pas de plan de taille", t_max)
