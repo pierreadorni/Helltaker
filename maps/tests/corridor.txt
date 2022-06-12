@@ -1,7 +1,7 @@
 Simple corridor
 4
 ###
-# #
+#B#
 #H#
 # #
 # #
