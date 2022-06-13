@@ -3,6 +3,7 @@ from state_space_search.solver import *
 from satplan.SatSolver import creation_cnf, sat_solver, solutionner
 from satplan.SatSolver2 import solve_laby2
 from pprint import pprint
+from asp.creationMapASP import creation
 import subprocess
 
 def state_space_search():
@@ -33,9 +34,8 @@ def satplan2():
 
     """Test for satplan"""
     infos = grid_from_file("maps/tests/block.txt")
-    sat = solve_laby2(infos)
-    print(sat)
-
+    sap = creationmap(infos)
+    print(sap)
 
 
 if __name__ == "__main__":
