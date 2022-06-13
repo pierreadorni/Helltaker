@@ -32,7 +32,7 @@ def satplan():
 def satplan2():
 
     """Test for satplan"""
-    infos = grid_from_file("maps/tests/corridor.txt")
+    infos = grid_from_file("maps/tests/block.txt")
     sat = solve_laby2(infos)
     print(sat)
 

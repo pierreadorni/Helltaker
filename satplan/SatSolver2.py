@@ -181,7 +181,6 @@ def clauses_successor_from_given_position(var2n, laby, t_max, position):
                    for t in range(t_max)]
 
 
-
             # le block ne va pas dans les demons
             cl += [[-var2n[('block', t, position)], -var2n[('do_v', t, 'move')], -var2n[('do_d', t, a)],
                     -var2n[('demon', t + 1, c)]]
