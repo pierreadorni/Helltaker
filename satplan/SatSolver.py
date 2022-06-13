@@ -207,7 +207,8 @@ def nouvelle_map(map, t_max, Actions, Cases, var2n):
         if entite != get_target(action)
     ]
 
-    # on fait reaparaiter les entirés avec un rapport avec l'action mais qui n'en sont pas la cible (par ex les mob non ciblés)
+    # on fait réapparaître les entités avec un rapport avec
+    # l'action, mais qui n'en sont pas la cible (par ex les mobs non ciblés)
     nouvelle_map += [
         [
             var2n[("at", t, c, entite)],

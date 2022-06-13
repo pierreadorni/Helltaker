@@ -2,7 +2,8 @@
 Version: 1.1.1
 Auteur : Sylvain Lagrue <sylvain.lagrue@hds.utc.fr>
 
-Ce module contient différentes fonction permettant de lire des fichiers Helltaker au format défini pour le projet et de vérifier des plans.
+Ce module contient différentes fonction permettant de lire des fichiers Helltaker au format
+défini pour le projet et de vérifier des plans.
 """
 
 from pprint import pprint
@@ -34,14 +35,14 @@ def grid_from_file(filename: str, voc: dict = {}):
     """
     Cette fonction lit un fichier et le convertit en une grille de Helltaker
 
-    Arguments:
-    - filename: fichier contenant la description de la grille
-    - voc: argument facultatif permettant de convertir chaque case de la grille en votre propre vocabulaire
+    Arguments :
+    - filename : fichier contenant la description de la grille
+    - voc : argument facultatif permettant de convertir chaque case de la grille en votre propre vocabulaire
 
-    Retour:
+    Retour :
     - un dictionnaire contenant:
         - la grille de jeu sous une forme d'une liste de liste de (chaînes de) caractères
-        - le nombre de ligne m
+        - le nombre de lignes m
         - le nombre de colonnes n
         - le titre de la grille
         - le nombre maximal de coups max_steps
@@ -85,8 +86,8 @@ def check_plan(plan: str):
     """
     Cette fonction vérifie que votre plan est valide/
 
-    Argument: un plan sous forme de chaîne de caractères
-    Retour  : True si le plan est valide, False sinon
+    Argument : un plan sous forme de chaîne de caractères
+    Retour : True si le plan est valide, False sinon
     """
     valid = "hbgd"
     for c in plan:
