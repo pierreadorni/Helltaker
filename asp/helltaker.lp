@@ -24,7 +24,7 @@ cell(1, 2).
 cell(1, 3).
 cell(2, 2).
 cell(2, 3).
-% cell(3, 2).
+cell(3, 2).
 cell(3, 3).
 
 % 
@@ -33,13 +33,15 @@ cell(3, 3).
 action(right; left; top; bottom; push_box_right; push_box_left; push_box_top; push_box_bottom; push_mob_right ;push_mob_left; push_mob_top; push_mob_bottom; kill_wall_mob_right; kill_wall_mob_left; kill_wall_mob_top; kill_wall_mob_bottom; kill_box_mob_right; kill_box_mob_left; kill_box_mob_top; kill_box_mob_bottom; waiting).
 
 %%% l'init
-init(at(3, 2)).
-init(spike(3,1,0)).
+init(at(3, 3)).
+init(mob(3, 2)).
+init(spike(3,2,0)).
+init(box(3,1)).
 
 fluent(F, 0) :- init(F).
 
 %%% les buts
-goal(at(3, 0)).
+goal(at(3, 1)).
 
 %%% tous les buts doivent être atteints au pas horizon
 :- goal(F), not fluent(F, horizon).
@@ -95,6 +97,10 @@ removed(at(X, Y), T) :-
     fluent(at(X, Y), T),
     not cell(X, Y + 1).
 
+:- do(right, T),
+    fluent(at(X, Y), T),
+    fluent(spike(X, Y, 0), T).
+
 :-  do(right, T), 
     fluent(at(X, Y), T), 
     fluent(box(X, Y + 1), T).
@@ -109,15 +115,27 @@ fluent(at(X, Y + 1), T + 1) :-
     do(right, T), 
     fluent(at(X, Y), T).
 
+fluent(spike(X, Y, 0), T + 1) :-
+    do(right, T),
+    fluent(spike(X, Y, 1), T).
+
 removed(at(X, Y), T) :- 
     do(right, T), 
     fluent(at(X, Y), T).
+
+removed(spike(X, Y, 1), T) :-
+    do(right, T),
+    fluent(spike(X, Y, 1), T).
 
 %% action top  --------------------------------------------------------------------
 % préconditions
 :-  do(top, T), 
     fluent(at(X, Y), T),
     not cell(X - 1, Y).
+
+:-  do(top, T),
+    fluent(at(X, Y), T),
+    fluent(spike(X, Y, 0), T).
 
 :-  do(top, T), 
     fluent(at(X, Y), T), 
@@ -132,15 +150,27 @@ fluent(at(X - 1, Y), T + 1) :-
     do(top, T), 
     fluent(at(X, Y), T).
 
+fluent(spike(X, Y, 0), T + 1) :-
+    do(top, T),
+    fluent(spike(X, Y, 1), T).
+
 removed(at(X, Y), T) :- 
     do(top, T), 
     fluent(at(X, Y), T).
+
+removed(spike(X, Y, 1), T) :-
+    do(top, T),
+    fluent(spike(X, Y, 1), T).
 
 %% action bottom  --------------------------------------------------------------------
 % préconditions
 :-  do(bottom, T), 
     fluent(at(X, Y), T),
     not cell(X + 1, Y).
+
+:-  do(bottom, T),
+    fluent(at(X, Y), T),
+    fluent(spike(X, Y, 0), T).
 
 :-  do(bottom, T), 
     fluent(at(X, Y), T), 
@@ -155,19 +185,23 @@ fluent(at(X + 1, Y), T + 1) :-
     do(bottom, T), 
     fluent(at(X, Y), T).
 
+fluent(spike(X, Y, 0), T + 1) :-
+    do(bottom, T),
+    fluent(spike(X, Y, 1), T).
+
 removed(at(X, Y), T) :- 
     do(bottom, T), 
     fluent(at(X, Y), T).
+
+removed(spike(X, Y, 1), T) :-
+    do(bottom, T),
+    fluent(spike(X, Y, 1), T).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %                                     waiting                                         %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% waiting      -----------------------------------------------------------------------
 % préconditions
-:-  do(waiting, T),
-    fluent(at(X, Y), T),
-    fluent(spike(X, Y, 1), T).
-
 :-  do(waiting, T),
     fluent(at(X, Y), T),
     not fluent(spike(X, Y, 0), T).
@@ -190,6 +224,10 @@ removed(spike(X, Y, 0), T) :-
     fluent(at(X, Y), T), 
     not fluent(box(X, Y - 1), T).
 
+:- do(push_box_left, T),
+    fluent(at(X, Y), T),
+    fluent(spike(X, Y, 0), T).
+
 :-  do(push_box_left, T), 
     fluent(at(X, Y), T), 
     not cell(X, Y - 2).
@@ -207,15 +245,27 @@ fluent(box(X, Y - 2), T + 1) :-
     do(push_box_left, T),
     fluent(at(X, Y), T).
 
+fluent(spike(X, Y, 0), T + 1) :-
+    do(push_box_left, T),
+    fluent(spike(X, Y, 1), T).
+
 removed(box(X, Y - 1), T) :- 
     do(push_box_left, T),
     fluent(at(X, Y), T).
+
+removed(spike(X, Y, 1), T) :-
+    do(push_box_left, T),
+    fluent(spike(X, Y, 1), T).
 
 %% action push_box_right-----------------------------------------------------------------
 % préconditions
 :-  do(push_box_right, T), 
     fluent(at(X, Y), T), 
     not fluent(box(X, Y + 1), T).
+
+:-  do(push_box_right, T),
+    fluent(at(X, Y), T),
+    fluent(spike(X, Y, 0), T).
 
 :-  do(push_box_right, T), 
     fluent(at(X, Y), T), 
@@ -234,15 +284,27 @@ fluent(box(X, Y + 2), T + 1) :-
     do(push_box_right, T),
     fluent(at(X, Y), T).
 
+fluent(spike(X, Y, 0), T + 1) :-
+    do(push_box_right, T),
+    fluent(spike(X, Y, 1), T).
+
 removed(box(X, Y + 1), T) :- 
     do(push_box_right, T),
     fluent(at(X, Y), T).
+
+removed(spike(X, Y, 1), T) :-
+    do(push_box_right, T),
+    fluent(spike(X, Y, 1), T).
 
 %% action push_box_top------------------------------------------------------------------
 % préconditions
 :-  do(push_box_top, T), 
     fluent(at(X, Y), T), 
     not fluent(box(X - 1, Y), T).
+
+:-  do(push_box_top, T),
+    fluent(at(X, Y), T),
+    fluent(spike(X, Y, 0), T).
 
 :-  do(push_box_top, T), 
     fluent(at(X, Y), T), 
@@ -261,15 +323,27 @@ fluent(box(X - 2, Y), T + 1) :-
     do(push_box_top, T),
     fluent(at(X, Y), T).
 
+fluent(spike(X, Y, 0), T + 1) :-
+    do(push_box_top, T),
+    fluent(spike(X, Y, 1), T).
+
 removed(box(X - 1, Y), T) :- 
     do(push_box_top, T),
     fluent(at(X, Y), T).
+
+removed(spike(X, Y, 1), T) :-
+    do(push_box_top, T),
+    fluent(spike(X, Y, 1), T).
 
 %% action push_box_bottom------------------------------------------------------------------
 % préconditions
 :-  do(push_box_bottom, T), 
     fluent(at(X, Y), T), 
     not fluent(box(X + 1, Y), T).
+
+:-  do(push_box_bottom, T),
+    fluent(at(X, Y), T),
+    fluent(spike(X, Y, 0), T).
 
 :-  do(push_box_bottom, T), 
     fluent(at(X, Y), T), 
@@ -288,9 +362,17 @@ fluent(box(X + 2, Y), T + 1) :-
     do(push_box_bottom, T),
     fluent(at(X, Y), T).
 
+fluent(spike(X, Y, 0), T + 1) :-
+    do(push_box_bottom, T),
+    fluent(spike(X, Y, 1), T).
+
 removed(box(X + 1, Y), T) :- 
     do(push_box_bottom, T),
     fluent(at(X, Y), T).
+
+removed(spike(X, Y, 1), T) :-
+    do(push_box_bottom, T),
+    fluent(spike(X, Y, 1), T).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %                              Pousser un mob                                         %
@@ -300,6 +382,10 @@ removed(box(X + 1, Y), T) :-
 :-  do(push_mob_left, T), 
     fluent(at(X, Y), T), 
     not fluent(mob(X, Y - 1), T).
+
+:- do(push_mob_left, T),
+    fluent(at(X, Y), T),
+    fluent(spike(X, Y, 0), T).
 
 :-  do(push_mob_left, T), 
     fluent(at(X, Y), T), 
@@ -318,15 +404,27 @@ fluent(mob(X, Y - 2), T + 1) :-
     do(push_mob_left, T),
     fluent(at(X, Y), T).
 
+fluent(spike(X, Y, 0), T + 1) :-
+    do(push_mob_left, T),
+    fluent(spike(X, Y, 1), T).
+
 removed(mob(X, Y - 1), T) :- 
     do(push_mob_left, T),
     fluent(at(X, Y), T).
+
+removed(spike(X, Y, 1), T) :-
+    do(push_mob_left, T),
+    fluent(spike(X, Y, 1), T).
 
 %% action push_mob_right-----------------------------------------------------------------
 % préconditions
 :-  do(push_mob_right, T), 
     fluent(at(X, Y), T), 
     not fluent(mob(X, Y + 1), T).
+
+:- do(push_mob_right, T),
+    fluent(at(X, Y), T),
+    fluent(spike(X, Y, 0), T).
 
 :-  do(push_mob_right, T), 
     fluent(at(X, Y), T), 
@@ -345,15 +443,27 @@ fluent(mob(X, Y + 2), T + 1) :-
     do(push_mob_right, T),
     fluent(at(X, Y), T).
 
+fluent(spike(X, Y, 0), T + 1) :-
+    do(push_mob_right, T),
+    fluent(spike(X, Y, 1), T).
+
 removed(mob(X, Y + 1), T) :- 
     do(push_mob_right, T),
     fluent(at(X, Y), T).
+
+removed(spike(X, Y, 1), T) :-
+    do(push_mob_right, T),
+    fluent(spike(X, Y, 1), T).
 
 %% action push_mob_top------------------------------------------------------------------
 % préconditions
 :-  do(push_mob_top, T), 
     fluent(at(X, Y), T), 
     not fluent(mob(X - 1, Y), T).
+
+:- do(push_mob_top, T),
+    fluent(at(X, Y), T),
+    fluent(spike(X, Y, 0), T).
 
 :-  do(push_mob_top, T), 
     fluent(at(X, Y), T), 
@@ -372,15 +482,27 @@ fluent(mob(X - 2, Y), T + 1) :-
     do(push_mob_top, T),
     fluent(at(X, Y), T).
 
+fluent(spike(X, Y, 0), T + 1) :-
+    do(push_mob_top, T),
+    fluent(spike(X, Y, 1), T).
+
 removed(mob(X - 1, Y), T) :- 
     do(push_mob_top, T),
     fluent(at(X, Y), T).
+
+removed(spike(X, Y, 1), T) :-
+    do(push_mob_top, T),
+    fluent(spike(X, Y, 1), T).
 
 %% action push_mob_bottom------------------------------------------------------------------
 % préconditions
 :-  do(push_mob_bottom, T), 
     fluent(at(X, Y), T), 
     not fluent(mob(X + 1, Y), T).
+
+:- do(push_mob_bottom, T),
+    fluent(at(X, Y), T),
+    fluent(spike(X, Y, 0), T).
 
 :-  do(push_mob_bottom, T), 
     fluent(at(X, Y), T), 
@@ -399,9 +521,17 @@ fluent(mob(X + 2, Y), T + 1) :-
     do(push_mob_bottom, T),
     fluent(at(X, Y), T).
 
+fluent(spike(X, Y, 0), T + 1) :-
+    do(push_mob_bottom, T),
+    fluent(spike(X, Y, 1), T).
+
 removed(mob(X + 1, Y), T) :- 
     do(push_mob_bottom, T),
     fluent(at(X, Y), T).
+
+removed(spike(X, Y, 1), T) :-
+    do(push_mob_bottom, T),
+    fluent(spike(X, Y, 1), T).
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -413,12 +543,24 @@ removed(mob(X + 1, Y), T) :-
     fluent(at(X, Y), T), 
     not fluent(mob(X, Y - 1), T).
 
+:- do(kill_wall_mob_left, T),
+    fluent(at(X, Y), T),
+    fluent(spike(X, Y, 0), T).
+
 :-  do(kill_wall_mob_left, T), 
     fluent(at(X, Y), T), 
     cell(X, Y - 2).
 
 % effets
-removed(mob(X, Y - 1), T) :- 
+fluent(spike(X, Y, 0), T + 1) :-
+    do(kill_wall_mob_left, T),
+    fluent(spike(X, Y, 1), T).
+
+removed(spike(X, Y, 1), T) :-
+    do(kill_wall_mob_left, T),
+    fluent(spike(X, Y, 1), T).
+
+removed(mob(X, Y - 1), T) :-
     do(kill_wall_mob_left, T),
     fluent(at(X, Y), T).
 
@@ -428,11 +570,23 @@ removed(mob(X, Y - 1), T) :-
     fluent(at(X, Y), T), 
     not fluent(mob(X, Y + 1), T).
 
+:- do(kill_wall_mob_right, T),
+    fluent(at(X, Y), T),
+    fluent(spike(X, Y, 0), T).
+
 :-  do(kill_wall_mob_right, T), 
     fluent(at(X, Y), T), 
     cell(X, Y + 2).
 
 % effets
+fluent(spike(X, Y, 0), T + 1) :-
+    do(kill_wall_mob_right, T),
+    fluent(spike(X, Y, 1), T).
+
+removed(spike(X, Y, 1), T) :-
+    do(kill_wall_mob_right, T),
+    fluent(spike(X, Y, 1), T).
+
 removed(mob(X, Y + 1), T) :- 
     do(kill_wall_mob_right, T),
     fluent(at(X, Y), T).
@@ -443,12 +597,24 @@ removed(mob(X, Y + 1), T) :-
     fluent(at(X, Y), T), 
     not fluent(mob(X - 1, Y), T).
 
+:- do(kill_wall_mob_top, T),
+    fluent(at(X, Y), T),
+    fluent(spike(X, Y, 0), T).
+
 :-  do(kill_wall_mob_top, T), 
     fluent(at(X, Y), T), 
     cell(X - 2, Y).
 
 
 % effets
+fluent(spike(X, Y, 0), T + 1) :-
+    do(kill_wall_mob_top, T),
+    fluent(spike(X, Y, 1), T).
+
+removed(spike(X, Y, 1), T) :-
+    do(kill_wall_mob_top, T),
+    fluent(spike(X, Y, 1), T).
+
 removed(mob(X - 1, Y), T) :- 
     do(kill_wall_mob_top, T),
     fluent(at(X, Y), T).
@@ -459,11 +625,23 @@ removed(mob(X - 1, Y), T) :-
     fluent(at(X, Y), T), 
     not fluent(mob(X + 1, Y), T).
 
+:- do(kill_wall_mob_bottom, T),
+    fluent(at(X, Y), T),
+    fluent(spike(X, Y, 0), T).
+
 :-  do(kill_wall_mob_bottom, T), 
     fluent(at(X, Y), T), 
     cell(X + 2, Y).
 
 % effets
+fluent(spike(X, Y, 0), T + 1) :-
+    do(kill_wall_mob_bottom, T),
+    fluent(spike(X, Y, 1), T).
+
+removed(spike(X, Y, 1), T) :-
+    do(kill_wall_mob_bottom, T),
+    fluent(spike(X, Y, 1), T).
+
 removed(mob(X + 1, Y), T) :- 
     do(kill_wall_mob_bottom, T),
     fluent(at(X, Y), T).
@@ -477,11 +655,21 @@ removed(mob(X + 1, Y), T) :-
     fluent(at(X, Y), T), 
     not fluent(mob(X, Y - 1), T).
 
+:- do(kill_box_mob_left, T),
+    fluent(at(X, Y), T),
+    fluent(spike(X, Y, 0), T).
+
 :-  do(kill_box_mob_left, T), 
     fluent(at(X, Y), T), 
     not fluent(box(X, Y - 2), T).
 
 % effets
+fluent(spike(X, Y, 0), T + 1) :-
+    do(kill_box_mob_left, T),
+    fluent(spike(X, Y, 1), T).
+removed(spike(X, Y, 1), T) :-
+    do(kill_box_mob_left, T),
+    fluent(spike(X, Y, 1), T).
 removed(mob(X, Y - 1), T) :- 
     do(kill_box_mob_left, T),
     fluent(at(X, Y), T).
@@ -491,12 +679,20 @@ removed(mob(X, Y - 1), T) :-
 :-  do(kill_box_mob_right, T), 
     fluent(at(X, Y), T), 
     not fluent(mob(X, Y + 1), T).
-
+:- do(kill_box_mob_right, T),
+    fluent(at(X, Y), T),
+    fluent(spike(X, Y, 0), T).
 :-  do(kill_box_mob_right, T), 
     fluent(at(X, Y), T), 
     not fluent(box(X, Y + 2), T).
 
 % effets
+fluent(spike(X, Y, 0), T + 1) :-
+    do(kill_box_mob_right, T),
+    fluent(spike(X, Y, 1), T).
+removed(spike(X, Y, 1), T) :-
+    do(kill_box_mob_right, T),
+    fluent(spike(X, Y, 1), T).
 removed(mob(X, Y + 1), T) :- 
     do(kill_box_mob_right, T),
     fluent(at(X, Y), T).
@@ -506,13 +702,21 @@ removed(mob(X, Y + 1), T) :-
 :-  do(kill_box_mob_top, T), 
     fluent(at(X, Y), T), 
     not fluent(mob(X - 1, Y), T).
-
+:- do(kill_box_mob_top, T),
+    fluent(at(X, Y), T),
+    fluent(spike(X, Y, 0), T).
 :-  do(kill_box_mob_top, T), 
     fluent(at(X, Y), T), 
     not fluent(box(X - 2, Y), T).
 
 
 % effets
+fluent(spike(X, Y, 0), T + 1) :-
+    do(kill_box_mob_top, T),
+    fluent(spike(X, Y, 1), T).
+removed(spike(X, Y, 1), T) :-
+    do(kill_box_mob_top, T),
+    fluent(spike(X, Y, 1), T).
 removed(mob(X - 1, Y), T) :- 
     do(kill_box_mob_top, T),
     fluent(at(X, Y), T).
@@ -522,12 +726,20 @@ removed(mob(X - 1, Y), T) :-
 :-  do(kill_box_mob_bottom, T), 
     fluent(at(X, Y), T), 
     not fluent(mob(X + 1, Y), T).
-
+:- do(kill_box_mob_bottom, T),
+    fluent(at(X, Y), T),
+    fluent(spike(X, Y, 0), T).
 :-  do(kill_box_mob_bottom, T), 
     fluent(at(X, Y), T), 
     not fluent(box(X + 2, Y), T).
 
 % effets
+fluent(spike(X, Y, 0), T + 1) :-
+    do(kill_box_mob_bottom, T),
+    fluent(spike(X, Y, 1), T).
+removed(spike(X, Y, 1), T) :-
+    do(kill_box_mob_bottom, T),
+    fluent(spike(X, Y, 1), T).
 removed(mob(X + 1, Y), T) :- 
     do(kill_box_mob_bottom, T),
     fluent(at(X, Y), T).
