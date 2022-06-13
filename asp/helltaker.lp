@@ -6,9 +6,6 @@
 
 %% clingo -c horizon=10 -n0 helltaker.lp
 
-% la taille du monde
-#const n = 6. 
-
 % pour la gestion de l'horizon
 step(0..horizon-1).
 
@@ -33,18 +30,16 @@ cell(3, 3).
 % 
 
 %les actions
-action(right; left; top; bottom; push_box_right; push_box_left; push_box_top; push_box_bottom; push_mob_right ;push_mob_left; push_mob_top; push_mob_bottom; kill_wall_mob_right; kill_wall_mob_left; kill_wall_mob_top; kill_wall_mob_bottom; kill_box_mob_right; kill_box_mob_left; kill_box_mob_top; kill_box_mob_bottom).
+action(right; left; top; bottom; push_box_right; push_box_left; push_box_top; push_box_bottom; push_mob_right ;push_mob_left; push_mob_top; push_mob_bottom; kill_wall_mob_right; kill_wall_mob_left; kill_wall_mob_top; kill_wall_mob_bottom; kill_box_mob_right; kill_box_mob_left; kill_box_mob_top; kill_box_mob_bottom; waiting).
 
 %%% l'init
-init(at(3, 0)).
-init(mob(2, 0)).
-init(box(1, 0)).
-init(box(3, 1)).
+init(at(3, 2)).
+init(spike(3,1,0)).
 
 fluent(F, 0) :- init(F).
 
 %%% les buts
-goal(at(2, 1)).
+goal(at(3, 0)).
 
 %%% tous les buts doivent être atteints au pas horizon
 :- goal(F), not fluent(F, horizon).
@@ -61,20 +56,34 @@ goal(at(2, 1)).
 % préconditions
 :-  do(left, T), 
     fluent(at(X, Y), T), 
-    not cell(X, Y -1). 
+    not cell(X, Y -1).
+
+:-  do(left, T), 
+    fluent(at(X, Y), T), 
+    fluent(spike(X, Y, 0), T).
+
 
 :-  do(left, T), 
     fluent(at(X, Y), T), 
     fluent(box(X, Y - 1), T).
 
-:-  do(left, T), 
-    fluent(at(X, Y), T), 
+
+:-  do(left, T),
+    fluent(at(X, Y), T),
     fluent(mob(X, Y - 1), T).
 
 % effets
 fluent(at(X, Y - 1), T + 1) :-
     do(left, T),
     fluent(at(X, Y), T).
+
+fluent(spike(X, Y, 0), T + 1) :-
+    do(left, T),
+    fluent(spike(X, Y, 1), T).
+
+removed(spike(X, Y, 1), T) :-
+    do(left, T),
+    fluent(spike(X, Y, 1), T).
 
 removed(at(X, Y), T) :-
     do(left, T),
@@ -151,9 +160,31 @@ removed(at(X, Y), T) :-
     fluent(at(X, Y), T).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                                     waiting                                         %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% waiting      -----------------------------------------------------------------------
+% préconditions
+:-  do(waiting, T),
+    fluent(at(X, Y), T),
+    fluent(spike(X, Y, 1), T).
+
+:-  do(waiting, T),
+    fluent(at(X, Y), T),
+    not fluent(spike(X, Y, 0), T).
+
+% effets
+fluent(spike(X, Y, 1), T + 1) :- 
+    fluent(spike(X, Y, 0), T),
+    do(waiting, T).
+
+removed(spike(X, Y, 0), T) :- 
+    fluent(spike(X, Y, 0), T),
+    do(waiting, T).
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %                              Pousser la boite                                       %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-%% action push_box_left------------------------------------------------------------------
+%% action push_box_left----------------------------------------------------------------
 % préconditions
 :-  do(push_box_left, T), 
     fluent(at(X, Y), T), 
