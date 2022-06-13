@@ -14,7 +14,7 @@ step(0..horizon-1).
 
 % l'environnement : cases vides
 cell(0, 0).
-% cell(1, 0).
+cell(1, 0).
 cell(2, 0).
 cell(3, 0).
 cell(0, 1).
@@ -33,19 +33,15 @@ cell(3, 3).
 % 
 
 %les actions
-action(right; left; top; bottom; push_box_right; push_box_left; push_box_top; push_box_bottom; push_mob_right ;push_mob_left; push_mob_top; push_mob_bottom; kill_mob_right; kill_mob_left; kill_mob_top; kill_mob_bottom).
+action(right; left; top; bottom; push_box_right; push_box_left; push_box_top; push_box_bottom; push_mob_right ;push_mob_left; push_mob_top; push_mob_bottom; kill_wall_mob_right; kill_wall_mob_left; kill_wall_mob_top; kill_wall_mob_bottom; kill_box_mob_right; kill_box_mob_left; kill_box_mob_top; kill_box_mob_bottom).
 
 %%% l'init
 init(at(3, 0)).
 init(mob(2, 0)).
+init(box(1, 0)).
 init(box(3, 1)).
 
 fluent(F, 0) :- init(F).
-
-%%% ce que l'on peut pousser
-pushed(Z, 0) :- init(Z), Z = box(X, Y).
-pushed(Z, 0) :- init(Z), Z = mob(X, Y).
-
 
 %%% les buts
 goal(at(2, 1)).
@@ -58,6 +54,9 @@ goal(at(2, 1)).
 
 
 %%% les actions
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                              Deplacement perso                                      %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%  action left----------------------------------------------------------------------
 % préconditions
 :-  do(left, T), 
@@ -151,6 +150,9 @@ removed(at(X, Y), T) :-
     do(bottom, T), 
     fluent(at(X, Y), T).
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                              Pousser la boite                                       %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% action push_box_left------------------------------------------------------------------
 % préconditions
 :-  do(push_box_left, T), 
@@ -259,6 +261,9 @@ removed(box(X + 1, Y), T) :-
     do(push_box_bottom, T),
     fluent(at(X, Y), T).
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                              Pousser un mob                                         %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% action push_mob_left------------------------------------------------------------------
 % préconditions
 :-  do(push_mob_left, T), 
@@ -367,68 +372,134 @@ removed(mob(X + 1, Y), T) :-
     do(push_mob_bottom, T),
     fluent(at(X, Y), T).
 
-%% action kill_mob_left------------------------------------------------------------------
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                              Tuer le mob sur un mur                                 %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% action kill_wall_mob_left------------------------------------------------------------------
 % préconditions
-:-  do(kill_mob_left, T), 
+:-  do(kill_wall_mob_left, T), 
     fluent(at(X, Y), T), 
     not fluent(mob(X, Y - 1), T).
 
-:-  do(kill_mob_left, T), 
+:-  do(kill_wall_mob_left, T), 
     fluent(at(X, Y), T), 
     cell(X, Y - 2).
 
 % effets
 removed(mob(X, Y - 1), T) :- 
-    do(kill_mob_left, T),
+    do(kill_wall_mob_left, T),
     fluent(at(X, Y), T).
 
-%% action kill_mob_right-----------------------------------------------------------------
+%% action kill_wall_mob_right-----------------------------------------------------------------
 % préconditions
-:-  do(kill_mob_right, T), 
+:-  do(kill_wall_mob_right, T), 
     fluent(at(X, Y), T), 
     not fluent(mob(X, Y + 1), T).
 
-:-  do(kill_mob_right, T), 
+:-  do(kill_wall_mob_right, T), 
     fluent(at(X, Y), T), 
     cell(X, Y + 2).
 
 % effets
 removed(mob(X, Y + 1), T) :- 
-    do(kill_mob_right, T),
+    do(kill_wall_mob_right, T),
     fluent(at(X, Y), T).
 
-%% action kill_mob_top------------------------------------------------------------------
+%% action kill_wall_mob_top------------------------------------------------------------------
 % préconditions
-:-  do(kill_mob_top, T), 
+:-  do(kill_wall_mob_top, T), 
     fluent(at(X, Y), T), 
     not fluent(mob(X - 1, Y), T).
 
-:-  do(kill_mob_top, T), 
+:-  do(kill_wall_mob_top, T), 
     fluent(at(X, Y), T), 
     cell(X - 2, Y).
 
 
 % effets
 removed(mob(X - 1, Y), T) :- 
-    do(kill_mob_top, T),
+    do(kill_wall_mob_top, T),
     fluent(at(X, Y), T).
 
-%% action kill_mob_bottom------------------------------------------------------------------
+%% action kill_wall_mob_bottom------------------------------------------------------------------
 % préconditions
-:-  do(kill_mob_bottom, T), 
+:-  do(kill_wall_mob_bottom, T), 
     fluent(at(X, Y), T), 
     not fluent(mob(X + 1, Y), T).
 
-:-  do(kill_mob_bottom, T), 
+:-  do(kill_wall_mob_bottom, T), 
     fluent(at(X, Y), T), 
     cell(X + 2, Y).
 
 % effets
 removed(mob(X + 1, Y), T) :- 
-    do(kill_mob_bottom, T),
+    do(kill_wall_mob_bottom, T),
     fluent(at(X, Y), T).
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%                              Tuer le mob sur un block                               %
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% action kill_box_mob_left------------------------------------------------------------------
+% préconditions
+:-  do(kill_box_mob_left, T), 
+    fluent(at(X, Y), T), 
+    not fluent(mob(X, Y - 1), T).
 
+:-  do(kill_box_mob_left, T), 
+    fluent(at(X, Y), T), 
+    not fluent(box(X, Y - 2), T).
+
+% effets
+removed(mob(X, Y - 1), T) :- 
+    do(kill_box_mob_left, T),
+    fluent(at(X, Y), T).
+
+%% action kill_box_mob_right-----------------------------------------------------------------
+% préconditions
+:-  do(kill_box_mob_right, T), 
+    fluent(at(X, Y), T), 
+    not fluent(mob(X, Y + 1), T).
+
+:-  do(kill_box_mob_right, T), 
+    fluent(at(X, Y), T), 
+    not fluent(box(X, Y + 2), T).
+
+% effets
+removed(mob(X, Y + 1), T) :- 
+    do(kill_box_mob_right, T),
+    fluent(at(X, Y), T).
+
+%% action kill_box_mob_top------------------------------------------------------------------
+% préconditions
+:-  do(kill_box_mob_top, T), 
+    fluent(at(X, Y), T), 
+    not fluent(mob(X - 1, Y), T).
+
+:-  do(kill_box_mob_top, T), 
+    fluent(at(X, Y), T), 
+    not fluent(box(X - 2, Y), T).
+
+
+% effets
+removed(mob(X - 1, Y), T) :- 
+    do(kill_box_mob_top, T),
+    fluent(at(X, Y), T).
+
+%% action kill_box_mob_bottom------------------------------------------------------------------
+% préconditions
+:-  do(kill_box_mob_bottom, T), 
+    fluent(at(X, Y), T), 
+    not fluent(mob(X + 1, Y), T).
+
+:-  do(kill_box_mob_bottom, T), 
+    fluent(at(X, Y), T), 
+    not fluent(box(X + 2, Y), T).
+
+% effets
+removed(mob(X + 1, Y), T) :- 
+    do(kill_box_mob_bottom, T),
+    fluent(at(X, Y), T).
 
 %%% Frame Problem
 % les fluents qui n'ont pas été supprimés restent à leur valeur
