@@ -4,7 +4,7 @@
 %%% author: Sylvain Lagrue %%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-%% clingo -c horizon=10 -n0 sokorridor.lp
+%% clingo -c horizon=10 -n0 helltaker.lp
 
 % la taille du monde
 #const n = 6. 
@@ -14,7 +14,7 @@ step(0..horizon-1).
 
 % l'environnement : cases vides
 cell(0, 0).
-cell(1, 0).
+% cell(1, 0).
 cell(2, 0).
 cell(3, 0).
 cell(0, 1).
@@ -37,10 +37,15 @@ action(right; left; top; bottom; push_box_right; push_box_left; push_box_top; pu
 
 %%% l'init
 init(at(3, 0)).
-init(box(2, 0)).
+init(mob(2, 0)).
 init(box(3, 1)).
 
 fluent(F, 0) :- init(F).
+
+%%% ce que l'on peut pousser
+pushed(Z, 0) :- init(Z), Z = box(X, Y).
+pushed(Z, 0) :- init(Z), Z = mob(X, Y).
+
 
 %%% les buts
 goal(at(2, 1)).
@@ -50,6 +55,7 @@ goal(at(2, 1)).
 
 %%% générateur d'actions..
 { do(Act, T): action(Act) } = 1 :- step(T).
+
 
 %%% les actions
 %%  action left----------------------------------------------------------------------
@@ -88,6 +94,7 @@ removed(at(X, Y), T) :-
 :-  do(right, T), 
     fluent(at(X, Y), T), 
     fluent(mob(X, Y + 1), T).
+
 
 % effets
 fluent(at(X, Y + 1), T + 1) :- 
@@ -420,6 +427,7 @@ removed(mob(X - 1, Y), T) :-
 removed(mob(X + 1, Y), T) :- 
     do(kill_mob_bottom, T),
     fluent(at(X, Y), T).
+
 
 
 %%% Frame Problem
