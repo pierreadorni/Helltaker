@@ -14,7 +14,7 @@ step(0..horizon-1).
 
 % l'environnement : cases vides
 cell(0, 0).
-% cell(1, 0).
+cell(1, 0).
 cell(2, 0).
 cell(3, 0).
 cell(0, 1).
@@ -27,7 +27,7 @@ cell(1, 2).
 cell(1, 3).
 cell(2, 2).
 cell(2, 3).
-cell(3, 2).
+% cell(3, 2).
 cell(3, 3).
 
 % 
@@ -38,12 +38,12 @@ action(right; left; top; bottom; push_box_right; push_box_left; push_box_top; pu
 %%% l'init
 init(at(3, 0)).
 init(box(2, 0)).
-ini(box(3, 1)).
+init(box(3, 1)).
 
 fluent(F, 0) :- init(F).
 
 %%% les buts
-goal(at(1, 2)).
+goal(at(2, 1)).
 
 %%% tous les buts doivent être atteints au pas horizon
 :- goal(F), not fluent(F, horizon).
