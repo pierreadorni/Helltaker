@@ -1,0 +1,9 @@
+\babel@toc {french}{}
+\contentsline {section}{\numberline {1}Une section}{1}{section.1}%
+\contentsline {subsection}{\numberline {1.1}Une sous-section}{1}{subsection.1.1}%
+\contentsline {subsection}{\numberline {1.2}Une autre sous-section}{1}{subsection.1.2}%
+\contentsline {subsubsection}{\numberline {1.2.1}Une sous-sous-section}{1}{subsubsection.1.2.1}%
+\contentsline {subsubsection}{\numberline {1.2.2}Une autre sous-sous-section}{1}{subsubsection.1.2.2}%
+\contentsline {paragraph}{Un paragraphe}{1}{section*.2}%
+\contentsline {subparagraph}{Un sous-paragraphe}{1}{section*.3}%
+\contentsline {section}{Une section non numérotée}{1}{section*.4}%
