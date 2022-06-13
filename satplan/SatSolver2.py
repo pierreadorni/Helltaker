@@ -99,6 +99,7 @@ def succ(at, direction, board):
 
 def clauses_successor_from_given_position(var2n, laby, t_max, position):
     board = laby["board"]
+    wall = laby["wall"]
     directions = ("left", "right", "up", "down")
 
     # les demons ne bougent pas
@@ -109,10 +110,6 @@ def clauses_successor_from_given_position(var2n, laby, t_max, position):
         ]
         for t in range(t_max)
     ]
-
-
-
-
 
     Successors = {a: succ(position, a, board) for a in directions}
     # transitions impossibles, entre deux cases *distinctes* non voisines
@@ -147,45 +144,41 @@ def clauses_successor_from_given_position(var2n, laby, t_max, position):
             cl += [[-var2n[('at', t, position)], -var2n[('do_v', t, 'move')], -var2n[('do_d', t, a)],
                     var2n[('at', t + 1, c)]]
                    for t in range(t_max)]
-
             # on ne fonce pas dans les blocks
             cl += [[-var2n[('at', t, position)], -var2n[('do_v', t, 'move')], -var2n[('do_d', t, a)],
                     -var2n[('block', t + 1, c)]]
                    for t in range(t_max)]
-
             # unicité de la position à l'issue de l'action
             cl += [[-var2n[('at', t, position)], -var2n[('do_v', t, 'move')], -var2n[('do_d', t, a)],
                     -var2n[('at', t + 1, c1)]]
                    for t in range(t_max) for c1 in Successors.values() if c1 != c and c1 in board]
 
-
-            # action : Push -----------------------------------------------------------------------------------------
+            # action : Push --------------------------------------------------------------------------------------------
             # on push face à un block
             cl += [
                 [-var2n[('at', t, position)], -var2n[('do_v', t, 'push')], -var2n[('do_d', t, a)], var2n[('block', t, c)]]
                 for t in range(t_max)]
-
             # le block poussé disparait de sa position d'origine
+            # ligne ajoutée var2n[('wall', t, c1)] && for c1 in [...]
             cl += [[-var2n[('at', t, position)], -var2n[('do_v', t, 'push')], -var2n[('do_d', t, a)],
                     -var2n[('block', t + 1, c)]]
-                     for t in range(t_max)]
+                    for t in range(t_max)
+            ]
+
             # deplacement du mur
             # mur(t,position) AND do(t,a) -> mur(t+1,c)
             cl += [[-var2n[('block', t, position)], -var2n[('do_v', t, 'push')], -var2n[('do_d', t, a)],
                     var2n[('block', t + 1, c)]]
-                   for t in range(t_max)]
-
-            # le block ne va pas dans les blocks
+                   for t in range(t_max)
+                   ]
+            # le block ne se place pas dans les murs
             cl += [[-var2n[('block', t, position)], -var2n[('do_v', t, 'move')], -var2n[('do_d', t, a)],
                     -var2n[('block', t + 1, c)]]
                    for t in range(t_max)]
-
-
             # le block ne va pas dans les demons
             cl += [[-var2n[('block', t, position)], -var2n[('do_v', t, 'move')], -var2n[('do_d', t, a)],
                     -var2n[('demon', t + 1, c)]]
                    for t in range(t_max)]
-
             # les autres blocks adjacents subsistent
             cl += [[-var2n[('at', t, position)], -var2n[('do_d', t, a)], -var2n[('block', t, c1)],
                     var2n[('block', t + 1, c1)]]
@@ -257,6 +250,6 @@ def solve_laby2(infos):
         write_dimacs_file(dimacs, filename)
         sat, model = exec_gophersat(filename)
         if sat:
-            print([n2v[i] for i in model if i > 0 and n2v[i][0] in ['block']])
+            print([n2v[i] for i in model if i > 0 and n2v[i][0] in ['do_v', 'do_d', 'at']])
         else:
             print("pas de plan de taille", t_max)
