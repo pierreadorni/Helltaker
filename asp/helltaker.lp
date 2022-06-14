@@ -10,20 +10,8 @@
 step(0..horizon-1).
 
 % l'environnement : cases vides
-cell(0, 0).
-cell(1, 0).
-cell(2, 0).
 cell(3, 0).
-cell(0, 1).
-cell(0, 2).
-cell(0, 3).
-cell(1, 1).
-cell(2, 1).
 cell(3, 1).
-cell(1, 2).
-cell(1, 3).
-cell(2, 2).
-cell(2, 3).
 cell(3, 2).
 cell(3, 3).
 
@@ -34,13 +22,13 @@ action(right; left; top; bottom; push_box_right; push_box_left; push_box_top; pu
 
 %%% l'init, format (X, Y);
 init(at(3, 3)).
-init(box())
-init(spike(3, 2)).
+init(trap(3, 2, 1)).
+init(trap(3, 1, 1)).
 
 fluent(F, 0) :- init(F).
 
 %%% les buts
-goal(at(3, 1)).
+goal(at(3, 0)).
 
 %%% On gagne s'il l'un des buts est atteint
 victory:- goal(F), fluent(F, horizon).
@@ -48,6 +36,46 @@ victory:- goal(F), fluent(F, horizon).
 
 %%% générateur d'actions..
 { do(Act, T): action(Act) } = 1 :- step(T).
+
+fluent(trap(X, Y, 1), T + 1) :-
+    do(Act, T),
+    Act != waiting,
+    fluent(trap(X, Y, 0), T).
+fluent(trap(X, Y, 0), T + 1) :-
+    do(Act, T),
+    Act != waiting,
+    fluent(trap(X, Y, 1), T).
+removed(trap(X, Y, E), T) :-
+    do(Act, T),
+    Act != waiting,
+    fluent(trap(X, Y, E), T).
+
+fluent(trap(X, Y, 0), T + 1) :-
+    do(waiting, T),
+    fluent(at(X, Y), T),
+    fluent(trap(X, Y, 1), T).
+fluent(trap(X, Y, 1), T + 1) :-
+    do(waiting, T),
+    fluent(at(X, Y), T),
+    fluent(trap(X, Y, 0), T).
+removed(trap(X, Y, E), T) :-
+    do(waiting, T),
+    fluent(at(X, Y), T),
+    fluent(trap(X, Y, E), T).
+
+fluent(trap(X, Y, E), T + 1) :-
+    do(waiting, T),
+    not fluent(at(X, Y), T),
+    fluent(trap(X, Y, E), T).
+removed(trap(X, Y, E), T) :-
+    do(waiting, T),
+    not fluent(at(X, Y), T),
+    fluent(trap(X, Y, E), T).
+
+:-  do(waiting2, T),
+    fluent(at(X, Y), T),
+    not fluent(trap(X, Y, 1), T).
+
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -62,6 +90,10 @@ victory:- goal(F), fluent(F, horizon).
 :-  do(left, T), 
     fluent(at(X, Y), T), 
     fluent(spike(X, Y), T).
+
+:-  do(left, T),
+    fluent(at(X, Y), T),
+    fluent(trap(X, Y, 1), T).
 
 :-  do(left, T), 
     fluent(at(X, Y), T), 
@@ -241,7 +273,7 @@ removed(door(A, B), T) :-
 % préconditions
 :-  do(waiting, T),
     fluent(at(X, Y), T),
-    not fluent(spike(X, Y), T).
+    not fluent(spike(X, Y), T); not fluent(trap(X, Y, 1), T).
 
 % effets
 fluent(spike(X, Y), T + 2) :- 
