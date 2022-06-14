@@ -3,7 +3,7 @@ from state_space_search.solver import *
 from satplan.SatSolver import creation_cnf, sat_solver, solutionner
 from satplan.SatSolver2 import solve_laby2
 from pprint import pprint
-from asp.creationMapASP import creation
+from asp.creationMapASP import creation_map
 import subprocess
 
 def state_space_search():
@@ -33,9 +33,10 @@ def satplan():
 def satplan2():
 
     """Test for satplan"""
-    infos = grid_from_file("maps/tests/block.txt")
-    sap = creationmap(infos)
-    print(sap)
+    infos = grid_from_file("maps/level1.txt")
+    sap = creation_map(infos)
+    with open("test.lp", "w") as f:
+        f.write(sap)
 
 
 if __name__ == "__main__":
