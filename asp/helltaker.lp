@@ -43,8 +43,9 @@ fluent(F, 0) :- init(F).
 %%% les buts
 goal(at(3, 0)).
 
-%%% Un unique but doit etre atteint au pas horizon
-:- goal(F), not fluent(F, horizon).
+%%% On gagne s'il l'un des buts est atteint
+victory:- goal(F), fluent(F, horizon).
+:- not victory.
 
 %%% générateur d'actions..
 { do(Act, T): action(Act) } = 1 :- step(T).
