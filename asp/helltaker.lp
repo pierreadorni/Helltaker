@@ -27,7 +27,7 @@ cell(2, 3).
 cell(3, 2).
 cell(3, 3).
 
-% 
+%
 
 %les actions
 action(right; left; top; bottom; push_box_right; push_box_left; push_box_top; push_box_bottom; push_mob_right ;push_mob_left; push_mob_top; push_mob_bottom; kill_wall_mob_right; kill_wall_mob_left; kill_wall_mob_top; kill_wall_mob_bottom; kill_box_mob_right; kill_box_mob_left; kill_box_mob_top; kill_box_mob_bottom; waiting).
@@ -42,8 +42,8 @@ fluent(F, 0) :- init(F).
 %%% les buts
 goal(at(3, 1)).
 
-%%% tous les buts doivent être atteints au pas horizon
-:- goal(F), not fluent(F, horizon).
+%%% Un unique but doit etre atteint au pas horizon
+not fluent(F, horizon) :- goal(F).
 
 %%% générateur d'actions..
 { do(Act, T): action(Act) } = 1 :- step(T).
