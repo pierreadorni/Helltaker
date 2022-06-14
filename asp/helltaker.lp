@@ -22,7 +22,8 @@ action(right; left; top; bottom; push_box_right; push_box_left; push_box_top; pu
 
 %%% l'init, format (X, Y);
 init(at(3, 3)).
-init(trap(3, 2, 1)).
+init(spike(3, 2)).
+%% trap(X, Y, E) : si E = 1, le trap est actif en T=0
 init(trap(3, 1, 1)).
 
 fluent(F, 0) :- init(F).
@@ -45,10 +46,6 @@ fluent(trap(X, Y, 0), T + 1) :-
     do(Act, T),
     Act != waiting,
     fluent(trap(X, Y, 1), T).
-removed(trap(X, Y, E), T) :-
-    do(Act, T),
-    Act != waiting,
-    fluent(trap(X, Y, E), T).
 
 fluent(trap(X, Y, 0), T + 1) :-
     do(waiting, T),
@@ -58,23 +55,15 @@ fluent(trap(X, Y, 1), T + 1) :-
     do(waiting, T),
     fluent(at(X, Y), T),
     fluent(trap(X, Y, 0), T).
-removed(trap(X, Y, E), T) :-
-    do(waiting, T),
-    fluent(at(X, Y), T),
-    fluent(trap(X, Y, E), T).
 
 fluent(trap(X, Y, E), T + 1) :-
     do(waiting, T),
     not fluent(at(X, Y), T),
     fluent(trap(X, Y, E), T).
 removed(trap(X, Y, E), T) :-
-    do(waiting, T),
-    not fluent(at(X, Y), T),
+    do(Act, T),
     fluent(trap(X, Y, E), T).
 
-:-  do(waiting2, T),
-    fluent(at(X, Y), T),
-    not fluent(trap(X, Y, 1), T).
 
 
 
