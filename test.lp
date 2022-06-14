@@ -1,83 +1,49 @@
-import subprocess
+%% clingo test.lp
+#const life = 43. 
+step(0..life-1).
+cell(1,2).
+init(at(1,3)).
+cell(1,3).
+cell(1,4).
+init(box(2,2)).
+cell(2,2).
+init(box(2,3)).
+cell(2,3).
+init(box(2,4)).
+cell(2,4).
+cell(3,1).
+cell(3,2).
+cell(3,3).
+init(key(3,4)).
+cell(3,4).
+init(trap(4,2),0).
+cell(4,2).
+cell(4,4).
+cell(4,5).
+init(mob(5,2)).
+cell(5,2).
+init(box(5,4)).
+cell(5,4).
+init(box(5,5)).
+cell(5,5).
+cell(5,6).
+cell(5,7).
+cell(6,2).
+cell(6,3).
+init(box(6,4)).
+cell(6,4).
+cell(6,5).
+init(mob(6,6)).
+cell(6,6).
+init(door(7,5)).
+cell(7,5).
+init(box(7,6)).
+cell(7,6).
+cell(7,7).
+cell(8,5).
+goal(at(7,6)).
+goal(at(8,5)).
 
-def exec_asp(filename: str, cmd: str = "clingo", encoding: str = "utf8"):
-    result = subprocess.run(
-        ["clingo", "test.lp"], capture_output=True
-    ).stdout.decode("utf-8")
-    chemin =result.split("\n")[4]
-    return formater_chemin(chemin)
-
-def formater_chemin(chemin: str):
-    chemin = chemin.split(" ")
-    plan =""
-    for action in chemin:
-        target = action[3:action.find(",")]
-        if target in ["right", "push_box_right", "push_mob_right", 'kill_right']:
-            plan += "d"
-        elif target in ["left", "push_box_left", "push_mob_left", 'kill_left']:
-            plan += "g"
-        elif target in ["top", "push_box_top", "push_mob_top", 'kill_top']:
-            plan += "h"
-        elif target in ["bottom", "push_box_bottom", "push_mob_bottom", 'kill_bottom']:
-            plan += "b"
-    return plan
-
-
-
-def creation_map(infos):
-    map = "%% clingo test.lp\n"
-
-    map += f"#const life = {infos['max_steps']}. \n"
-    map +="step(0..life-1).\n"
-    wall = []
-    demon = []
-    for i in range(infos["m"]):
-        for j in range(infos["n"]):
-            target = infos["grid"][i][j]
-            if target == " ":
-                map += f"cell({i},{j}).\n"
-            elif target == "H":
-                map += f"init(at({i},{j})).\n"
-                map += f"cell({i},{j}).\n"
-            elif target == "B":
-                map += f"init(box({i},{j})).\n"
-                map += f"cell({i},{j}).\n"
-            elif target == "#":
-                wall.append([i, j])
-                #map += f"wall({i},{j}).\n"
-            elif target == "D":
-                demon.append([i, j])
-                #map += f"init(demon({i},{j})).\n"
-            elif target == "M":
-                map += f"init(mob({i},{j})).\n"
-                map += f"cell({i},{j}).\n"
-            elif target == "S":
-                map += f"init(spike({i},{j})).\n"
-                map += f"cell({i},{j}).\n"
-            elif target == "U":
-                map += f"init(trap({i},{j}),1).\n"
-                map += f"cell({i},{j}).\n"
-            elif target == "T":
-                map += f"init(trap({i},{j}),0).\n"
-                map += f"cell({i},{j}).\n"
-            elif target == "K":
-                map += f"init(key({i},{j})).\n"
-                map += f"cell({i},{j}).\n"
-            elif target == "L":
-                map += f"init(door({i},{j})).\n"
-                map += f"cell({i},{j}).\n"
-
-    # ajout des etats finaux
-    for coord in demon:
-        if [coord[0] + 1, coord[1]] not in wall:
-            map += f"goal(at({coord[0]+1},{coord[1]})).\n"
-        if [coord[0] - 1, coord[1]] not in wall:
-            map += f"goal(at({coord[0]-1},{coord[1]})).\n"
-        if [coord[0], coord[1] + 1] not in wall:
-            map += f"goal(at({coord[0]},{coord[1]+1})).\n"
-        if [coord[0], coord[1] - 1] not in wall:
-            map += f"goal(at({coord[0]},{coord[1]-1})).\n"
-    map +="""
 
 %%  Les actions-----------------------------------------------------------------------
 action(right; left; top; bottom; push_box_right; push_box_left; push_box_top; push_box_bottom; push_mob_right ;push_mob_left; push_mob_top; push_mob_bottom; kill_right; kill_left; kill_top; kill_bottom; waiting).
@@ -603,5 +569,3 @@ fluent(F, T + 1) :-
     T + 1 <= life.
 
 #show do/2.
-"""
-    return map
