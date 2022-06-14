@@ -911,19 +911,17 @@ def solve(
     current_state = state
     while queue:
         current_state = queue.popleft()
-        visited.add(standardize_depth(current_state))
         if is_final(current_state, map_):
             break
         for name, action in actions.items():
             try:
                 new_state = execute(current_state, action)
+                new_state_std_depth = standardize_depth(new_state)
             except PrecondNotMetException:
                 continue
-            if (
-                standardize_depth(new_state) not in visited
-                and new_state.depth <= map_.max_depth
-            ):
+            if new_state_std_depth not in visited and new_state.depth <= map_.max_depth:
                 previous_dict[new_state] = (current_state, name)
+                visited.add(new_state_std_depth)
                 queue.append(new_state)
     if not is_final(current_state, map_):
         raise NoSolutionException(f"No solution found in {map_.max_depth} actions.")
@@ -955,18 +953,19 @@ def solve_a_star(
     current_state = state
     while heap:
         _, current_state = heapq.heappop(heap)
-        visited.add(standardize_depth(current_state))
         if is_final(current_state, map_) and current_state.depth <= map_.max_depth:
             break
         for name, action in actions.items():
             try:
                 new_state = execute(current_state, action)
+                new_state_std_depth = standardize_depth(new_state)
             except PrecondNotMetException:
                 continue
-            if standardize_depth(new_state) in visited:
+            if new_state_std_depth in visited:
                 continue
             if new_state.depth <= map_.max_depth:
                 previous_dict[new_state] = (current_state, name)
+                visited.add(new_state_std_depth)
                 heapq.heappush(heap, (heuristic(map_, new_state), new_state))
     if not is_final(current_state, map_):
         raise NoSolutionException(f"No solution found in {map_.max_depth} actions.")

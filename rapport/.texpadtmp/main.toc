@@ -1,6 +1,6 @@
 \babel@toc {french}{}
 \contentsline {section}{\numberline {1}Présentation du jeu}{2}{section.1}%
 \contentsline {subsection}{\numberline {1.1}Présentation des règles du jeu}{2}{subsection.1.1}%
-\contentsline {subsubsection}{\numberline {1.1.1}Représentation STRIPS}{3}{subsubsection.1.1.1}%
+\contentsline {subsubsection}{\numberline {1.1.1}Représentation STRIPS}{4}{subsubsection.1.1.1}%
 \contentsline {section}{\numberline {2}Recherche dans un espace d'états}{4}{section.2}%
 \contentsline {section}{\numberline {3}Planification par SAT}{4}{section.3}%

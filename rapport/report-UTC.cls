@@ -8,6 +8,7 @@
 \usepackage[utf8]{inputenc}  % Français
 \usepackage{subfiles}
 \usepackage{titling}
+\usepackage{listingsutf8}
 \usepackage{textcomp}
 \usepackage{lmodern}        % Pour avoir de bonnes polices en pdf
 \usepackage{graphicx}       % Indispensable pour les figures
@@ -45,7 +46,13 @@
 
 \renewcommand{\listoflistingscaption}{Liste des programmes} %Pour changer le titre de la liste des codes
 \renewcommand{\listingscaption}{Programme} %Pour changer la légende des codes
-
+\lstset{
+  basicstyle=\ttfamily,
+  mathescape,
+  columns=fullflexible,
+  tabsize=4,
+  literate = {é}{{\'e}}{1}%
+}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %Nouvelles variables

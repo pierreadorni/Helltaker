@@ -18,6 +18,7 @@ class TestMapsAStar(unittest.TestCase):
 
     def test_corridor(self):
         self._test_file("maps/tests/corridor.txt")
+        print(f"time: {time.time() - start}")
 
     def test_locknkey(self):
         self._test_file("maps/tests/locknkey.txt")
