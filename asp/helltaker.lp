@@ -43,7 +43,7 @@ fluent(F, 0) :- init(F).
 goal(at(3, 1)).
 
 %%% Un unique but doit etre atteint au pas horizon
-not fluent(F, horizon) :- goal(F).
+:- goal(F), not fluent(F, horizon).
 
 %%% générateur d'actions..
 { do(Act, T): action(Act) } = 1 :- step(T).
