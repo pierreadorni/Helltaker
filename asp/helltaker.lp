@@ -27,7 +27,7 @@ cell(2, 3).
 cell(3, 2).
 cell(3, 3).
 
-%
+% 
 
 %les actions
 action(right; left; top; bottom; push_box_right; push_box_left; push_box_top; push_box_bottom; push_mob_right ;push_mob_left; push_mob_top; push_mob_bottom; kill_wall_mob_right; kill_wall_mob_left; kill_wall_mob_top; kill_wall_mob_bottom; kill_box_mob_right; kill_box_mob_left; kill_box_mob_top; kill_box_mob_bottom; waiting).
