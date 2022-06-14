@@ -25,7 +25,7 @@ def creation_map(infos):
                 map += f"init(mob({i},{j})).\n"
                 map += f"cell({i},{j}).\n"
             elif target == "S":
-                map += f"init(spike({i},{j})).\n"
+                map += f"init(spike({i},{j}, 0)).\n"
                 map += f"cell({i},{j}).\n"
             elif target == "T":
                 map += f"init(trap_safe({i},{j})).\n"
@@ -37,7 +37,7 @@ def creation_map(infos):
                 map += f"init(key({i},{j})).\n"
                 map += f"cell({i},{j}).\n"
             elif target == "L":
-                map += f"init(lock({i},{j})).\n"
+                map += f"init(door({i},{j})).\n"
                 map += f"cell({i},{j}).\n"
 
     # ajout des etats finaux
@@ -61,7 +61,7 @@ fluent(F, 0) :- init(F).
 
 %%% les buts
 
-%%% On gagne s'il l'un des buts est atteint
+%%% Un unique but doit etre atteint au pas horizon
 victory:- goal(F), fluent(F, horizon).
 :- not victory.
 
