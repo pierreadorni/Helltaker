@@ -9,17 +9,23 @@ def exec_asp(filename: str, cmd: str = "clingo", encoding: str = "utf8"):
 
 def formater_chemin(chemin: str):
     chemin = chemin.split(" ")
+    actions =[]
     plan =""
     for action in chemin:
         target = action[3:action.find(",")]
+        position = action[action.find(","):action.find(",)")]
         if target in ["right", "push_box_right", "push_mob_right", 'kill_right']:
-            plan += "d"
+            actions += (position,"r")
         elif target in ["left", "push_box_left", "push_mob_left", 'kill_left']:
-            plan += "g"
+            actions += (position,"g")
         elif target in ["top", "push_box_top", "push_mob_top", 'kill_top']:
-            plan += "h"
+            actions += (position,"h")
         elif target in ["bottom", "push_box_bottom", "push_mob_bottom", 'kill_bottom']:
-            plan += "b"
+            actions += (position,"b")
+    actions.sort(key=lambda x: x[0])
+    for action in actions:
+        plan += action[1]
+
     return plan
 
 
