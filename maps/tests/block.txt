@@ -4,6 +4,6 @@ Simple corridor
 # ####
 #H##D#
 # ## #
-#  B #
+#B   #
 #    #
 ######
