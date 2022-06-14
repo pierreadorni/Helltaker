@@ -5,25 +5,12 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 %% clingo -c horizon=10 helltaker.lp
-
 % pour la gestion de l'horizon
 step(0..horizon-1).
 
 % l'environnement : cases vides
-cell(0, 0).
-cell(1, 0).
-cell(2, 0).
 cell(3, 0).
-cell(0, 1).
-cell(0, 2).
-cell(0, 3).
-cell(1, 1).
-cell(2, 1).
 cell(3, 1).
-cell(1, 2).
-cell(1, 3).
-cell(2, 2).
-cell(2, 3).
 cell(3, 2).
 cell(3, 3).
 
@@ -34,13 +21,13 @@ action(right; left; top; bottom; push_box_right; push_box_left; push_box_top; pu
 
 %%% l'init, format (X, Y);
 init(at(3, 3)).
-init(box())
-init(spike(3, 2)).
 
 fluent(F, 0) :- init(F).
+trap(3, 2, 0).
+trap(3, 1, 0).
 
 %%% les buts
-goal(at(3, 1)).
+goal(at(3, 0)).
 
 %%% On gagne s'il l'un des buts est atteint
 victory:- goal(F), fluent(F, horizon).
@@ -81,6 +68,8 @@ fluent(at(X, Y - 1), T + 1) :-
     fluent(at(X, Y), T).
 
 fluent(spike(X, Y), T + 1) :-
+    not trap(X, Y, 1),
+    not trap(X, Y, 0),
     do(left, T),
     fluent(spike(X, Y), T).
 
@@ -127,6 +116,8 @@ fluent(at(X, Y + 1), T + 1) :-
     fluent(at(X, Y), T).
 
 fluent(spike(X, Y), T + 1) :-
+    not trap(X, Y, 1),
+    not trap(X, Y, 0),
     do(right, T),
     fluent(spike(X, Y), T).
 
@@ -172,6 +163,8 @@ fluent(at(X - 1, Y), T + 1) :-
     fluent(at(X, Y), T).
 
 fluent(spike(X, Y), T + 1) :-
+    not trap(X, Y, 1),
+    not trap(X, Y, 0),
     do(top, T),
     fluent(spike(X, Y), T).
 
@@ -217,6 +210,8 @@ fluent(at(X + 1, Y), T + 1) :-
     fluent(at(X, Y), T).
 
 fluent(spike(X, Y), T + 1) :-
+    not trap(X, Y, 1),
+    not trap(X, Y, 0),
     do(bottom, T),
     fluent(spike(X, Y), T).
 
@@ -244,11 +239,17 @@ removed(door(A, B), T) :-
     not fluent(spike(X, Y), T).
 
 % effets
-fluent(spike(X, Y), T + 2) :- 
+fluent(spike(X, Y), T + 2) :-
+    not trap(X, Y, 1),
+    not trap(X, Y, 0),
     fluent(spike(X, Y), T),
     do(waiting, T).
 
-removed(spike(X, Y), T) :- 
+fluent(spike(X, Y), T + 1) :-
+    fluent(spike(X, Y), T),
+    do(waiting, T).
+
+removed(spike(X, Y), T) :-
     fluent(spike(X, Y), T),
     do(waiting, T).
 
@@ -283,6 +284,8 @@ fluent(box(X, Y - 2), T + 1) :-
     fluent(at(X, Y), T).
 
 fluent(spike(X, Y), T + 1) :-
+    not trap(X, Y, 1),
+    not trap(X, Y, 0),
     do(push_box_left, T),
     fluent(spike(X, Y), T).
 
@@ -303,6 +306,8 @@ removed(spike(X, Y), T) :-
 :-  do(push_box_right, T),
     fluent(at(X, Y), T),
     fluent(spike(X, Y), T).
+    not trap(X, Y, 1),
+    not trap(X, Y, 0),
 
 :-  do(push_box_right, T), 
     fluent(at(X, Y), T), 
@@ -322,6 +327,8 @@ fluent(box(X, Y + 2), T + 1) :-
     fluent(at(X, Y), T).
 
 fluent(spike(X, Y), T + 1) :-
+    not trap(X, Y, 1),
+    not trap(X, Y, 0),
     do(push_box_right, T),
     fluent(spike(X, Y), T).
 
@@ -361,6 +368,8 @@ fluent(box(X - 2, Y), T + 1) :-
     fluent(at(X, Y), T).
 
 fluent(spike(X, Y), T + 1) :-
+    not trap(X, Y, 1),
+    not trap(X, Y, 0),
     do(push_box_top, T),
     fluent(spike(X, Y), T).
 
@@ -400,6 +409,8 @@ fluent(box(X + 2, Y), T + 1) :-
     fluent(at(X, Y), T).
 
 fluent(spike(X, Y), T + 1) :-
+    not trap(X, Y, 1),
+    not trap(X, Y, 0),
     do(push_box_bottom, T),
     fluent(spike(X, Y), T).
 
@@ -442,6 +453,8 @@ fluent(mob(X, Y - 2), T + 1) :-
     fluent(at(X, Y), T).
 
 fluent(spike(X, Y), T + 1) :-
+    not trap(X, Y, 1),
+    not trap(X, Y, 0),
     do(push_mob_left, T),
     fluent(spike(X, Y), T).
 
@@ -481,6 +494,8 @@ fluent(mob(X, Y + 2), T + 1) :-
     fluent(at(X, Y), T).
 
 fluent(spike(X, Y), T + 1) :-
+    not trap(X, Y, 1),
+    not trap(X, Y, 0),
     do(push_mob_right, T),
     fluent(spike(X, Y), T).
 
@@ -520,6 +535,8 @@ fluent(mob(X - 2, Y), T + 1) :-
     fluent(at(X, Y), T).
 
 fluent(spike(X, Y), T + 1) :-
+    not trap(X, Y, 1),
+    not trap(X, Y, 0),
     do(push_mob_top, T),
     fluent(spike(X, Y), T).
 
@@ -559,6 +576,8 @@ fluent(mob(X + 2, Y), T + 1) :-
     fluent(at(X, Y), T).
 
 fluent(spike(X, Y), T + 1) :-
+    not trap(X, Y, 1),
+    not trap(X, Y, 0),
     do(push_mob_bottom, T),
     fluent(spike(X, Y), T).
 
@@ -590,6 +609,8 @@ removed(spike(X, Y), T) :-
 
 % effets
 fluent(spike(X, Y), T + 1) :-
+    not trap(X, Y, 1),
+    not trap(X, Y, 0),
     do(kill_wall_mob_left, T),
     fluent(spike(X, Y), T).
 
@@ -617,6 +638,8 @@ removed(mob(X, Y - 1), T) :-
 
 % effets
 fluent(spike(X, Y), T + 1) :-
+    not trap(X, Y, 1),
+    not trap(X, Y, 0),
     do(kill_wall_mob_right, T),
     fluent(spike(X, Y), T).
 
@@ -645,6 +668,8 @@ removed(mob(X, Y + 1), T) :-
 
 % effets
 fluent(spike(X, Y), T + 1) :-
+    not trap(X, Y, 1),
+    not trap(X, Y, 0),
     do(kill_wall_mob_top, T),
     fluent(spike(X, Y), T).
 
@@ -672,6 +697,8 @@ removed(mob(X - 1, Y), T) :-
 
 % effets
 fluent(spike(X, Y), T + 1) :-
+    not trap(X, Y, 1),
+    not trap(X, Y, 0),
     do(kill_wall_mob_bottom, T),
     fluent(spike(X, Y), T).
 
@@ -702,6 +729,8 @@ removed(mob(X + 1, Y), T) :-
 
 % effets
 fluent(spike(X, Y), T + 1) :-
+    not trap(X, Y, 1),
+    not trap(X, Y, 0),
     do(kill_box_mob_left, T),
     fluent(spike(X, Y), T).
 removed(spike(X, Y), T) :-
@@ -725,6 +754,8 @@ removed(mob(X, Y - 1), T) :-
 
 % effets
 fluent(spike(X, Y), T + 1) :-
+    not trap(X, Y, 1),
+    not trap(X, Y, 0),
     do(kill_box_mob_right, T),
     fluent(spike(X, Y), T).
 removed(spike(X, Y), T) :-
@@ -749,6 +780,8 @@ removed(mob(X, Y + 1), T) :-
 
 % effets
 fluent(spike(X, Y), T + 1) :-
+    not trap(X, Y, 1),
+    not trap(X, Y, 0),
     do(kill_box_mob_top, T),
     fluent(spike(X, Y), T).
 removed(spike(X, Y), T) :-
@@ -772,6 +805,8 @@ removed(mob(X - 1, Y), T) :-
 
 % effets
 fluent(spike(X, Y), T + 1) :-
+    not trap(X, Y, 1),
+    not trap(X, Y, 0),
     do(kill_box_mob_bottom, T),
     fluent(spike(X, Y), T).
 removed(spike(X, Y), T) :-
@@ -786,6 +821,20 @@ removed(mob(X + 1, Y), T) :-
 fluent(F, T + 1) :- 
     fluent(F, T), 
     T + 1 <= horizon,
+    not traped(F, T),
     not removed(F, T).
+
+%%%
+fluent(spike(X, Y), T):-
+    trap(X, Y, 1),
+    fluent(at(X, Y), T),
+    traped(spike(X, Y), T),
+    T \ 2 = 0.
+
+fluent(spike(X, Y), T):-
+    trap(X, Y, 0),
+    fluent(at(X, Y), T),
+    traped(spike(X, Y), T),
+    not T \ 2 = 0.
 
 #show do/2.
