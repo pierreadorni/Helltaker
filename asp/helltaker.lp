@@ -4,7 +4,7 @@
 %%% author: Sylvain Lagrue %%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-%% clingo -c horizon=10 -n0 helltaker.lp
+%% clingo -c horizon=10 helltaker.lp
 
 % pour la gestion de l'horizon
 step(0..horizon-1).
@@ -32,16 +32,16 @@ cell(3, 3).
 %les actions
 action(right; left; top; bottom; push_box_right; push_box_left; push_box_top; push_box_bottom; push_mob_right ;push_mob_left; push_mob_top; push_mob_bottom; kill_wall_mob_right; kill_wall_mob_left; kill_wall_mob_top; kill_wall_mob_bottom; kill_box_mob_right; kill_box_mob_left; kill_box_mob_top; kill_box_mob_bottom; waiting).
 
-%%% l'init
+%%% l'init, format (X, Y); (X, Y, E) avec E etat (0 : coupant->spike, fermé->door, à terre -> clé)
 init(at(3, 3)).
-init(mob(3, 2)).
-init(spike(3,2,0)).
-init(box(3,1)).
+init(key(0, 3)).
+init(door(2, 0)).
+init(door(3, 1)).
 
 fluent(F, 0) :- init(F).
 
 %%% les buts
-goal(at(3, 1)).
+goal(at(3, 0)).
 
 %%% tous les buts doivent être atteints au pas horizon
 :- goal(F), not fluent(F, horizon).
@@ -50,7 +50,6 @@ goal(at(3, 1)).
 { do(Act, T): action(Act) } = 1 :- step(T).
 
 
-%%% les actions
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %                              Deplacement perso                                      %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -64,6 +63,9 @@ goal(at(3, 1)).
     fluent(at(X, Y), T), 
     fluent(spike(X, Y, 0), T).
 
+:-  do(left, T), 
+    fluent(at(X, Y), T), 
+    fluent(door(X, Y - 1), T).
 
 :-  do(left, T), 
     fluent(at(X, Y), T), 
@@ -91,6 +93,12 @@ removed(at(X, Y), T) :-
     do(left, T),
     fluent(at(X, Y), T).
 
+removed(door(A, B), T) :-
+    do(left, T),
+    fluent(at(X, Y), T),
+    fluent(key(X, Y - 1), T),
+    fluent(door(A, B), T).
+
 %% action right --------------------------------------------------------------------
 % préconditions
 :-  do(right, T), 
@@ -100,6 +108,10 @@ removed(at(X, Y), T) :-
 :- do(right, T),
     fluent(at(X, Y), T),
     fluent(spike(X, Y, 0), T).
+
+:-  do(right, T), 
+    fluent(at(X, Y), T), 
+    fluent(door(X, Y + 1), T).
 
 :-  do(right, T), 
     fluent(at(X, Y), T), 
@@ -127,6 +139,12 @@ removed(spike(X, Y, 1), T) :-
     do(right, T),
     fluent(spike(X, Y, 1), T).
 
+removed(door(A, B), T) :-
+    do(right, T),
+    fluent(at(X, Y), T),
+    fluent(key(X, Y + 1), T),
+    fluent(door(A, B), T).
+
 %% action top  --------------------------------------------------------------------
 % préconditions
 :-  do(top, T), 
@@ -136,6 +154,10 @@ removed(spike(X, Y, 1), T) :-
 :-  do(top, T),
     fluent(at(X, Y), T),
     fluent(spike(X, Y, 0), T).
+
+:-  do(top, T), 
+    fluent(at(X, Y), T), 
+    fluent(door(X - 1, Y), T).
 
 :-  do(top, T), 
     fluent(at(X, Y), T), 
@@ -162,6 +184,12 @@ removed(spike(X, Y, 1), T) :-
     do(top, T),
     fluent(spike(X, Y, 1), T).
 
+removed(door(A, B), T) :-
+    do(top, T),
+    fluent(at(X, Y), T),
+    fluent(key(X - 1, Y), T),
+    fluent(door(A, B), T).
+
 %% action bottom  --------------------------------------------------------------------
 % préconditions
 :-  do(bottom, T), 
@@ -171,6 +199,10 @@ removed(spike(X, Y, 1), T) :-
 :-  do(bottom, T),
     fluent(at(X, Y), T),
     fluent(spike(X, Y, 0), T).
+
+:-  do(bottom, T), 
+    fluent(at(X, Y), T), 
+    fluent(door(X + 1, Y), T).
 
 :-  do(bottom, T), 
     fluent(at(X, Y), T), 
@@ -196,6 +228,12 @@ removed(at(X, Y), T) :-
 removed(spike(X, Y, 1), T) :-
     do(bottom, T),
     fluent(spike(X, Y, 1), T).
+
+removed(door(A, B), T) :-
+    do(bottom, T),
+    fluent(at(X, Y), T),
+    fluent(key(X + 1, Y), T),
+    fluent(door(A, B), T).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %                                     waiting                                         %
