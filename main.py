@@ -33,7 +33,7 @@ def satplan():
 def satplan2():
 
     """Test for satplan"""
-    infos = grid_from_file("maps/level1.txt")
+    infos = grid_from_file("maps/level2.txt")
     sap = creation_map(infos)
     with open("test.lp", "w") as f:
         f.write(sap)

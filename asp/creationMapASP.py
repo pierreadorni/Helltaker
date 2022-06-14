@@ -61,8 +61,8 @@ fluent(F, 0) :- init(F).
 
 %%% les buts
 
-%%% tous les buts doivent être atteints au pas horizon
-:- goal(F), not fluent(F, horizon).
+%%% Un unique but doit etre atteint au pas horizon
+not fluent(F, horizon) :- goal(F).
 
 %%% générateur d'actions..
 { do(Act, T): action(Act) } = 1 :- step(T).
