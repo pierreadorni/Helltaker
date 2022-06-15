@@ -1,56 +1,101 @@
 %% clingo solver_asp.lp
-#const life = 43. 
+#const life = 12. 
 step(0..life-1).
+cell(1,1).
 cell(1,2).
-init(at(1,3)).
-cell(1,3).
-cell(1,4).
-init(box(2,2)).
+cell(1,8).
+cell(1,9).
+cell(2,1).
 cell(2,2).
-init(box(2,3)).
 cell(2,3).
-init(box(2,4)).
 cell(2,4).
+init(mob(2,5)).
+cell(2,5).
+cell(2,6).
+cell(2,7).
+cell(2,8).
+cell(2,9).
 cell(3,1).
 cell(3,2).
 cell(3,3).
-init(key(3,4)).
-init(keyObtained(0)).
 cell(3,4).
-init(trap(4,2,0)).
+init(mob(3,5)).
+cell(3,5).
+cell(3,6).
+cell(3,7).
+cell(3,8).
+cell(3,9).
+cell(4,1).
 cell(4,2).
-init(box(4,3)).
-init(trap(4,3, 1)).
-cell(4,3).
 cell(4,4).
+init(mob(4,5)).
 cell(4,5).
-init(mob(5,2)).
+cell(4,6).
+cell(4,8).
+cell(4,9).
+cell(5,1).
 cell(5,2).
-init(box(5,4)).
+cell(5,3).
 cell(5,4).
-init(box(5,5)).
+init(mob(5,5)).
 cell(5,5).
 cell(5,6).
 cell(5,7).
+cell(5,8).
+cell(5,9).
+cell(6,1).
 cell(6,2).
-cell(6,3).
-init(box(6,4)).
 cell(6,4).
+init(mob(6,5)).
 cell(6,5).
-init(mob(6,6)).
 cell(6,6).
-init(door(7,5)).
+cell(6,8).
+cell(6,9).
+cell(7,1).
+cell(7,2).
+cell(7,3).
+cell(7,4).
+init(mob(7,5)).
 cell(7,5).
-init(box(7,6)).
 cell(7,6).
 cell(7,7).
+cell(7,8).
+cell(7,9).
+cell(8,2).
+cell(8,4).
+init(mob(8,5)).
 cell(8,5).
-goal(at(7,6)).
-goal(at(8,5)).
+cell(8,6).
+cell(8,8).
+cell(9,2).
+cell(9,3).
+cell(9,4).
+init(mob(9,5)).
+cell(9,5).
+cell(9,6).
+cell(9,7).
+cell(9,8).
+cell(10,2).
+cell(10,4).
+cell(10,5).
+cell(10,6).
+cell(10,8).
+cell(11,2).
+cell(11,3).
+cell(11,4).
+init(at(11,5)).
+cell(11,5).
+cell(11,6).
+cell(11,7).
+cell(11,8).
+cell(12,4).
+cell(12,5).
+cell(12,6).
+goal(at(2,5)).
 
 %%  Les actions-----------------------------------------------------------------------
 action(right; left; top; bottom; push_box_right; push_box_left; push_box_top; push_box_bottom; push_mob_right ;push_mob_left; push_mob_top; push_mob_bottom; kill_right; kill_left; kill_top; kill_bottom; waiting).
-
+push_bot(push_mob_right; push_mob_left; push_mob_top; push_mob_bottom).
 %%  Les fluents-----------------------------------------------------------------------
 fluent(F, 0) :- init(F).
 
@@ -92,7 +137,8 @@ removed(keyObtained(0), T):-
 
 :-  do(left, T),
     fluent(at(X, Y), T),
-    fluent(mob(X, Y - 1), T).
+    fluent(mob(X, Y - 1), T),
+    not fluent(trap(X, Y - 1, 1), T).
 
 % effets
 fluent(at(X, Y - 1), T + 1) :-
@@ -126,7 +172,8 @@ removed(door(X, Y - 1) , T):-
 
 :-  do(right, T),
     fluent(at(X, Y), T),
-    fluent(mob(X, Y + 1), T).
+    fluent(mob(X, Y + 1), T),
+    not fluent(trap(X, Y + 1, 1), T).
 
 % effets
 fluent(at(X, Y + 1), T + 1) :-
@@ -160,7 +207,8 @@ removed(door(X, Y + 1) , T):-
 
 :-  do(top, T),
     fluent(at(X, Y), T),
-    fluent(mob(X - 1, Y), T).
+    fluent(mob(X - 1, Y), T),
+    not fluent(trap(X - 1, Y, 1), T).
 
 % effets
 fluent(at(X - 1, Y), T + 1) :-
@@ -194,7 +242,8 @@ removed(door(X - 1, Y) , T):-
 
 :-  do(bottom, T),
     fluent(at(X, Y), T),
-    fluent(mob(X + 1, Y), T).
+    fluent(mob(X + 1, Y), T),
+    not fluent(trap(X + 1, Y, 1), T).
 
 % effets
 fluent(at(X + 1, Y), T + 1) :-
@@ -503,12 +552,13 @@ removed(mob(X + 1, Y), T) :-
 %                                     Tuer un mob                                     %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% kill mob if on trap---------------------------------------------------------------
-removed(mob(X, Y), T) :-
-    fluent(trap(X, Y, 0), T),
-    fluent(mob(X, Y), T).
 
 removed(mob(X, Y), T) :-
     fluent(trap(X, Y, 1), T),
+    fluent(mob(X, Y), T).
+
+removed(mob(X, Y), T) :-
+    fluent(spike(X, Y), T),
     fluent(mob(X, Y), T).
 
 %% action kill_left------------------------------------------------------------------

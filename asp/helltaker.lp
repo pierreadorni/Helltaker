@@ -1,6 +1,6 @@
 %%  Les actions-----------------------------------------------------------------------
 action(right; left; top; bottom; push_box_right; push_box_left; push_box_top; push_box_bottom; push_mob_right ;push_mob_left; push_mob_top; push_mob_bottom; kill_right; kill_left; kill_top; kill_bottom; waiting).
-
+push_bot(push_mob_right; push_mob_left; push_mob_top; push_mob_bottom).
 %%  Les fluents-----------------------------------------------------------------------
 fluent(F, 0) :- init(F).
 
@@ -42,7 +42,8 @@ removed(keyObtained(0), T):-
 
 :-  do(left, T),
     fluent(at(X, Y), T),
-    fluent(mob(X, Y - 1), T).
+    fluent(mob(X, Y - 1), T),
+    not fluent(trap(X, Y - 1, 1), T).
 
 % effets
 fluent(at(X, Y - 1), T + 1) :-
@@ -76,7 +77,8 @@ removed(door(X, Y - 1) , T):-
 
 :-  do(right, T),
     fluent(at(X, Y), T),
-    fluent(mob(X, Y + 1), T).
+    fluent(mob(X, Y + 1), T),
+    not fluent(trap(X, Y + 1, 1), T).
 
 % effets
 fluent(at(X, Y + 1), T + 1) :-
@@ -110,7 +112,8 @@ removed(door(X, Y + 1) , T):-
 
 :-  do(top, T),
     fluent(at(X, Y), T),
-    fluent(mob(X - 1, Y), T).
+    fluent(mob(X - 1, Y), T),
+    not fluent(trap(X - 1, Y, 1), T).
 
 % effets
 fluent(at(X - 1, Y), T + 1) :-
@@ -144,7 +147,8 @@ removed(door(X - 1, Y) , T):-
 
 :-  do(bottom, T),
     fluent(at(X, Y), T),
-    fluent(mob(X + 1, Y), T).
+    fluent(mob(X + 1, Y), T),
+    not fluent(trap(X + 1, Y, 1), T).
 
 % effets
 fluent(at(X + 1, Y), T + 1) :-
@@ -453,12 +457,13 @@ removed(mob(X + 1, Y), T) :-
 %                                     Tuer un mob                                     %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %% kill mob if on trap---------------------------------------------------------------
-removed(mob(X, Y), T) :-
-    fluent(trap(X, Y, 0), T),
-    fluent(mob(X, Y), T).
 
 removed(mob(X, Y), T) :-
     fluent(trap(X, Y, 1), T),
+    fluent(mob(X, Y), T).
+
+removed(mob(X, Y), T) :-
+    fluent(spike(X, Y), T),
     fluent(mob(X, Y), T).
 
 %% action kill_left------------------------------------------------------------------
