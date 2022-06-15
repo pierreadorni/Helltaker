@@ -27,4 +27,3 @@ def sapplan():
 if __name__ == "__main__":
     # state_space_search()
     print(sapplan())
-
