@@ -149,14 +149,14 @@ def move_factory(_map: Map, direction: Callable[[Position], Position]) -> Action
                 lambda s: direction(s.hero) != s.lock,
             ]
         ),
-        effects=[
+        effects=(
             move,
             check_for_key,
             check_for_spike,
             switch_traps,
             check_for_trap,
             check_for_kills,
-        ],
+        ),
     )
 
 
@@ -192,12 +192,12 @@ def push_factory(_map: Map, direction: Callable[[Position], Position]) -> Action
                 lambda s: direction(direction(s.hero)) != s.lock,
             ]
         ),
-        effects=[
+        effects=(
             push,
             switch_traps,
             check_for_trap,
             check_for_kills,
-        ],
+        ),
     )
 
 
@@ -231,24 +231,26 @@ def wait_factory(_map: Map, direction: Callable[[Position], Position]) -> Action
                     direction(s.hero) in s.boxes
                     and direction(direction(s.hero)) in _map.walls
                 )
-                or (direction(s.hero)) in s.boxes
-                and direction(direction(s.hero)) == s.lock
+                or (
+                    direction(s.hero) in s.boxes
+                    and direction(direction(s.hero)) == s.lock
+                )
             ]
         ),
-        effects=[
+        effects=(
             wait,
             switch_traps,
             check_for_trap,
             check_for_kills,
-        ],
+        ),
     )
 
 
 def push_mob_factory(_map: Map, direction: Callable[[Position], Position]) -> Action:
-    """Creates an Action that pushes a mob in the given direction"""
+    """Creates an Action that pushes a mob the given direction"""
 
     def push_mob(state: State) -> State:
-        """Push the mob top"""
+        """Push the mob a given direction"""
         mobs = [m for m in state.mobs if not m == direction(state.hero)] + [
             direction(direction(state.hero))
         ]
@@ -271,12 +273,12 @@ def push_mob_factory(_map: Map, direction: Callable[[Position], Position]) -> Ac
                 lambda s: direction(s.hero) in s.mobs,
             ],
         ),
-        effects=[
+        effects=(
             push_mob,
             switch_traps,
             check_for_trap,
             check_for_kills,
-        ],
+        ),
     )
 
 
