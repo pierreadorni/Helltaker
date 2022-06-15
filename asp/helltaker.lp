@@ -196,32 +196,35 @@ removed(spike(X, Y), T) :-
 
 :-  do(push_box_left, T),
     fluent(at(X, Y), T),
-    fluent(door(X, Y - 2), T).
+    fluent(door(X, Y - 2), T); not fluent(door(X, Y - 2), T).
 
 :-  do(push_box_left, T),
     fluent(at(X, Y), T),
-    not cell(X, Y - 2).
+    not cell(X, Y - 2); cell(X, Y - 2).
 
 :-  do(push_box_left, T),
     fluent(at(X, Y), T),
-    fluent(box(X, Y - 2), T).
+    fluent(box(X, Y - 2), T); not fluent(box(X, Y - 2), T).
 
 :-  do(push_box_left, T),
     fluent(at(X, Y), T),
-    fluent(box(X, Y - 2), T).
-
-:-  do(push_box_left, T),
-    fluent(at(X, Y), T),
-    fluent(mob(X, Y - 2), T).
+    fluent(mob(X, Y - 2), T); not fluent(mob(X, Y - 2), T).
 
 % effets
 fluent(box(X, Y - 2), T + 1) :-
     do(push_box_left, T),
-    fluent(at(X, Y), T).
+    fluent(at(X, Y), T),
+    fluent(door(X, Y - 2), T); not cell(X, Y - 2); fluent(box(X, Y - 2), T); fluent(mob(X, Y - 2), T).
+
+fluent(box(X, Y), T + 1) :-
+    do(push_box_left, T),
+    fluent(at(X, Y), T),
+    not fluent(door(X, Y - 2), T); cell(X, Y - 2); not fluent(box(X, Y - 2), T); not fluent(mob(X, Y - 2), T).
 
 removed(box(X, Y - 1), T) :-
     do(push_box_left, T),
-    fluent(at(X, Y), T).
+    fluent(at(X, Y), T),
+    fluent(door(X, Y - 2), T); not cell(X, Y - 2); fluent(box(X, Y - 2), T); fluent(mob(X, Y - 2), T).
 
 %% action push_box_right-----------------------------------------------------------------
 % préconditions
@@ -229,31 +232,37 @@ removed(box(X, Y - 1), T) :-
     fluent(at(X, Y), T),
     not fluent(box(X, Y + 1), T).
 
+:-  do(push_box_right, T),
+    fluent(at(X, Y), T),
+    fluent(door(X, Y + 2), T); not fluent(door(X, Y + 2), T).
 
 :-  do(push_box_right, T),
     fluent(at(X, Y), T),
-    fluent(door(X, Y + 2), T).
+    not cell(X, Y + 2); cell(X, Y + 2).
 
 :-  do(push_box_right, T),
     fluent(at(X, Y), T),
-    not cell(X, Y + 2).
+    fluent(box(X, Y + 2), T); not fluent(box(X, Y + 2), T).
 
 :-  do(push_box_right, T),
     fluent(at(X, Y), T),
-    fluent(box(X, Y + 2), T).
-
-:-  do(push_box_right, T),
-    fluent(at(X, Y), T),
-    fluent(mob(X, Y + 2), T).
+    fluent(mob(X, Y + 2), T); not fluent(mob(X, Y + 2), T).
 
 % effets
 fluent(box(X, Y + 2), T + 1) :-
     do(push_box_right, T),
-    fluent(at(X, Y), T).
+    fluent(at(X, Y), T),
+    fluent(door(X, Y + 2), T); not cell(X, Y + 2); fluent(box(X, Y + 2), T); fluent(mob(X, Y + 2), T).
+
+fluent(box(X, Y), T + 1) :-
+    do(push_box_right, T),
+    fluent(at(X, Y), T),
+    not fluent(door(X, Y + 2), T); cell(X, Y + 2); not fluent(box(X, Y + 2), T); not fluent(mob(X, Y + 2), T).
 
 removed(box(X, Y + 1), T) :-
     do(push_box_right, T),
-    fluent(at(X, Y), T).
+    fluent(at(X, Y), T),
+    fluent(door(X, Y + 2), T); not cell(X, Y + 2); fluent(box(X, Y + 2), T); fluent(mob(X, Y + 2), T).
 
 %% action push_box_top------------------------------------------------------------------
 % préconditions
@@ -263,28 +272,35 @@ removed(box(X, Y + 1), T) :-
 
 :-  do(push_box_top, T),
     fluent(at(X, Y), T),
-    fluent(door(X - 2, Y), T).
+    fluent(door(X - 2, Y), T); not fluent(door(X - 2, Y), T).
 
 :-  do(push_box_top, T),
     fluent(at(X, Y), T),
-    not cell(X - 2, Y).
+    not cell(X - 2, Y); cell(X - 2, Y).
 
 :-  do(push_box_top, T),
     fluent(at(X, Y), T),
-    fluent(box(X - 2, Y), T).
+    fluent(box(X - 2, Y), T); not fluent(box(X - 2, Y), T).
 
 :-  do(push_box_top, T),
     fluent(at(X, Y), T),
-    fluent(mob(X - 2, Y), T).
+    fluent(mob(X - 2, Y), T); not fluent(mob(X - 2, Y), T).
 
 % effets
 fluent(box(X - 2, Y), T + 1) :-
     do(push_box_top, T),
-    fluent(at(X, Y), T).
+    fluent(at(X, Y), T),
+    fluent(door(X - 2, Y), T); not cell(X - 2, Y); fluent(box(X - 2, Y), T); fluent(mob(X - 2, Y), T).
+
+fluent(box(X, Y), T + 1) :-
+    do(push_box_top, T),
+    fluent(at(X, Y), T),
+    not fluent(door(X - 2, Y), T); cell(X - 2, Y); not fluent(box(X - 2, Y), T); not fluent(mob(X - 2, Y), T).
 
 removed(box(X - 1, Y), T) :-
     do(push_box_top, T),
-    fluent(at(X, Y), T).
+    fluent(at(X, Y), T),
+    fluent(door(X - 2, Y), T); not cell(X - 2, Y); fluent(box(X - 2, Y), T); fluent(mob(X - 2, Y), T).
 
 %% action push_box_bottom------------------------------------------------------------------
 % préconditions
@@ -294,28 +310,35 @@ removed(box(X - 1, Y), T) :-
 
 :-  do(push_box_bottom, T),
     fluent(at(X, Y), T),
-    fluent(door(X + 2, Y), T).
+    fluent(door(X + 2, Y), T); not fluent(door(X + 2, Y), T).
 
 :-  do(push_box_bottom, T),
     fluent(at(X, Y), T),
-    not cell(X + 2, Y).
+    not cell(X + 2, Y); cell(X + 2, Y).
 
 :-  do(push_box_bottom, T),
     fluent(at(X, Y), T),
-    fluent(box(X + 2, Y), T).
+    fluent(box(X + 2, Y), T); not fluent(box(X + 2, Y), T).
 
 :-  do(push_box_bottom, T),
     fluent(at(X, Y), T),
-    fluent(mob(X + 2, Y), T).
+    fluent(mob(X + 2, Y), T); not fluent(mob(X + 2, Y), T).
 
 % effets
 fluent(box(X + 2, Y), T + 1) :-
     do(push_box_bottom, T),
-    fluent(at(X, Y), T).
+    fluent(at(X, Y), T),
+    fluent(door(X + 2, Y), T); not cell(X + 2, Y); fluent(box(X + 2, Y), T); fluent(mob(X + 2, Y), T).
+
+fluent(box(X, Y), T + 1) :-
+    do(push_box_bottom, T),
+    fluent(at(X, Y), T),
+    not fluent(door(X + 2, Y), T); cell(X + 2, Y); not fluent(box(X + 2, Y), T); not fluent(mob(X + 2, Y), T).
 
 removed(box(X + 1, Y), T) :-
     do(push_box_bottom, T),
-    fluent(at(X, Y), T).
+    fluent(at(X, Y), T),
+    fluent(door(X + 2, Y), T); not cell(X + 2, Y); fluent(box(X + 2, Y), T); fluent(mob(X + 2, Y), T).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %                              Pousser un mob                                         %
