@@ -1,3 +1,53 @@
+%% clingo solver_asp.lp
+#const life = 43. 
+step(0..life-1).
+cell(1,2).
+init(at(1,3)).
+cell(1,3).
+cell(1,4).
+init(box(2,2)).
+cell(2,2).
+init(box(2,3)).
+cell(2,3).
+init(box(2,4)).
+cell(2,4).
+cell(3,1).
+cell(3,2).
+cell(3,3).
+init(key(3,4)).
+init(keyObtained(0)).
+cell(3,4).
+init(trap(4,2,0)).
+cell(4,2).
+init(box(4,3)).
+init(trap(4,3, 1)).
+cell(4,3).
+cell(4,4).
+cell(4,5).
+init(mob(5,2)).
+cell(5,2).
+init(box(5,4)).
+cell(5,4).
+init(box(5,5)).
+cell(5,5).
+cell(5,6).
+cell(5,7).
+cell(6,2).
+cell(6,3).
+init(box(6,4)).
+cell(6,4).
+cell(6,5).
+init(mob(6,6)).
+cell(6,6).
+init(door(7,5)).
+cell(7,5).
+init(box(7,6)).
+cell(7,6).
+cell(7,7).
+cell(8,5).
+goal(at(7,6)).
+goal(at(8,5)).
+
 %%  Les actions-----------------------------------------------------------------------
 action(right; left; top; bottom; push_box_right; push_box_left; push_box_top; push_box_bottom; push_mob_right ;push_mob_left; push_mob_top; push_mob_bottom; kill_right; kill_left; kill_top; kill_bottom; waiting).
 
