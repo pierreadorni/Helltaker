@@ -3,11 +3,12 @@ import sys
 from typing import List
 
 from utils import grid_from_file
-from state_space_search.solver import (
+from state_space_search import (
     solve_a_star,
     parse_grid,
     is_valid,
     helltaker_actions_factories,
+    helltaker_directions,
 )
 
 
@@ -39,7 +40,7 @@ def main():
     formatted_plan = format_plan(plan)
 
     # affichage du résultat
-    if is_valid(_map, state, helltaker_actions_factories, plan):
+    if is_valid(_map, state, helltaker_actions_factories, helltaker_directions, plan):
         print("[OK]", formatted_plan)
     else:
         print("[Err]", formatted_plan, file=sys.stderr)

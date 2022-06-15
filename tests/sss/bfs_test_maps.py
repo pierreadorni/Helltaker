@@ -1,12 +1,13 @@
 """ State Space Search Tests file """
 import unittest
 
-from state_space_search.solver import (
+from state_space_search import (
     parse_grid,
     solve,
     helltaker_actions_factories,
     solve_a_star,
     is_valid,
+    helltaker_directions,
 )
 from utils import grid_from_file
 
@@ -16,7 +17,11 @@ class TestMapsBFS(unittest.TestCase):
         level = grid_from_file(filename)
         map_, state = parse_grid(level)
         plan = solve(state, map_, helltaker_actions_factories)
-        self.assertTrue(is_valid(map_, state, helltaker_actions_factories, plan))
+        self.assertTrue(
+            is_valid(
+                map_, state, helltaker_actions_factories, helltaker_directions, plan
+            )
+        )
 
     def test_corridor(self):
         self._test_file("maps/tests/corridor.txt")
