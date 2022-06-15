@@ -1,9 +1,10 @@
 import unittest
-from state_space_search.solver import (
+from state_space_search import (
     parse_grid,
     helltaker_actions_factories,
     solve_a_star,
     is_valid,
+    helltaker_directions,
 )
 from utils import grid_from_file
 
@@ -14,7 +15,11 @@ class TestMapsAStar(unittest.TestCase):
         map_, state = parse_grid(level)
         plan = solve_a_star(state, map_, helltaker_actions_factories)
         print(plan)
-        self.assertTrue(is_valid(map_, state, helltaker_actions_factories, plan))
+        self.assertTrue(
+            is_valid(
+                map_, state, helltaker_actions_factories, helltaker_directions, plan
+            )
+        )
 
     def test_corridor(self):
         self._test_file("maps/tests/corridor.txt")
