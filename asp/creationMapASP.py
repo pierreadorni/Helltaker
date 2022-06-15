@@ -1,32 +1,38 @@
 import subprocess
+from operator import itemgetter
+
 
 def exec_asp(filename: str, cmd: str = "clingo", encoding: str = "utf8"):
     result = subprocess.run(
         ["clingo", "test.lp"], capture_output=True
     ).stdout.decode("utf-8")
+    print(result)
     chemin =result.split("\n")[4]
-    return formater_chemin(chemin)
+    print(formater_chemin(chemin))
 
 def formater_chemin(chemin: str):
     chemin = chemin.split(" ")
+    if chemin == ['']:
+        return "Unsatisfiable"
     actions =[]
     plan =""
     for action in chemin:
         target = action[3:action.find(",")]
-        position = action[action.find(","):action.find(",)")]
+        position = int(action[action.find(",")+1:action.find(",)")])
         if target in ["right", "push_box_right", "push_mob_right", 'kill_right']:
-            actions += (position,"r")
+            actions += [[position,"r"]]
         elif target in ["left", "push_box_left", "push_mob_left", 'kill_left']:
-            actions += (position,"g")
+            actions += [[position,"g"]]
         elif target in ["top", "push_box_top", "push_mob_top", 'kill_top']:
-            actions += (position,"h")
+            actions += [[position,"h"]]
         elif target in ["bottom", "push_box_bottom", "push_mob_bottom", 'kill_bottom']:
-            actions += (position,"b")
-    actions.sort(key=lambda x: x[0])
+            actions += [[position,"b"]]
+    actions = sorted(actions, key=itemgetter(0))
     for action in actions:
         plan += action[1]
 
     return plan
+
 
 
 
@@ -61,10 +67,10 @@ def creation_map(infos):
                 map += f"init(spike({i},{j})).\n"
                 map += f"cell({i},{j}).\n"
             elif target == "U":
-                map += f"init(trap({i},{j}),1).\n"
+                map += f"init(trap({i},{j},1)).\n"
                 map += f"cell({i},{j}).\n"
             elif target == "T":
-                map += f"init(trap({i},{j}),0).\n"
+                map += f"init(trap({i},{j},0)).\n"
                 map += f"cell({i},{j}).\n"
             elif target == "K":
                 map += f"init(key({i},{j})).\n"
@@ -84,7 +90,6 @@ def creation_map(infos):
         if [coord[0], coord[1] - 1] not in wall:
             map += f"goal(at({coord[0]},{coord[1]-1})).\n"
     map +="""
-
 %%  Les actions-----------------------------------------------------------------------
 action(right; left; top; bottom; push_box_right; push_box_left; push_box_top; push_box_bottom; push_mob_right ;push_mob_left; push_mob_top; push_mob_bottom; kill_right; kill_left; kill_top; kill_bottom; waiting).
 
@@ -394,6 +399,8 @@ removed(mob(X, Y - 1), T) :-
     do(push_mob_left, T),
     fluent(at(X, Y), T).
 
+
+
 %% action push_mob_right-----------------------------------------------------------------
 % préconditions
 :-  do(push_mob_right, T),
@@ -468,6 +475,12 @@ removed(mob(X - 1, Y), T) :-
 
 % effets
 fluent(mob(X + 2, Y), T + 1) :-
+    not fluent(trap(X + 2, Y, 0), T),
+    do(push_mob_bottom, T),
+    fluent(at(X, Y), T).
+
+fluent(mob(X + 2, Y), T + 1) :-
+    not fluent(trap(X + 2, Y, 1), T),
     do(push_mob_bottom, T),
     fluent(at(X, Y), T).
 
@@ -475,9 +488,23 @@ removed(mob(X + 1, Y), T) :-
     do(push_mob_bottom, T),
     fluent(at(X, Y), T).
 
+removed(mob(X + 1, Y), T) :-
+    do(push_mob_bottom, T),
+    fluent(trap(X + 1, Y, E), T),
+    fluent(at(X, Y), T).
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %                                     Tuer un mob                                     %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%% kill mob if on trap---------------------------------------------------------------
+removed(mob(X, Y), T) :-
+    fluent(trap(X, Y, 0), T),
+    fluent(mob(X, Y), T).
+
+removed(mob(X, Y), T) :-
+    fluent(trap(X, Y, 1), T),
+    fluent(mob(X, Y), T).
+
 %% action kill_left------------------------------------------------------------------
 % préconditions
 :-  do(kill_left, T),
@@ -534,10 +561,24 @@ removed(mob(X - 1, Y), T) :-
 
 :-  do(kill_bottom, T),
     fluent(at(X, Y), T),
+    fluent(trap(X + 1, Y, E), T).
+
+:-  do(kill_bottom, T),
+    fluent(at(X, Y), T),
     cell(X + 2, Y); not fluent(box(X + 2, Y), T).
 
-% effets
+:-  do(kill_bottom, T),
+    fluent(at(X, Y), T),
+    fluent(mob(X + 1, Y), T),
+    not fluent(trap(X + 1, Y, 1), T).
 
+:-  do(kill_bottom, T),
+    fluent(at(X, Y), T),
+    fluent(mob(X + 1, Y), T),
+    not fluent(trap(X + 1, Y, 0), T).
+
+
+% effets
 removed(mob(X + 1, Y), T) :-
     do(kill_bottom, T),
     fluent(at(X, Y), T).
@@ -545,8 +586,6 @@ removed(mob(X + 1, Y), T) :-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %                              Gestion des Trap                                       %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-
 fluent(trap(X, Y, 1), T + 1) :-
     do(Act, T),
     Act != waiting,
@@ -559,19 +598,11 @@ fluent(trap(X, Y, 0), T + 1) :-
 
 fluent(trap(X, Y, 0), T + 2) :-
     do(waiting, T),
-    fluent(at(X, Y), T),
     fluent(trap(X, Y, 1), T).
-
 
 fluent(trap(X, Y, 1), T + 2) :-
     do(waiting, T),
-    fluent(at(X, Y), T),
     fluent(trap(X, Y, 0), T).
-
-fluent(trap(X, Y, E), T + 1) :-
-    do(waiting, T),
-    not fluent(at(X, Y), T),
-    fluent(trap(X, Y, E), T).
 
 removed(trap(X, Y, E), T) :-
     do(Act, T),
@@ -609,5 +640,6 @@ fluent(F, T + 1) :-
     T + 1 <= life.
 
 #show do/2.
+
 """
     return map
