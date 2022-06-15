@@ -15,15 +15,15 @@ def state_space_search():
     pprint(states)
 
 
-def sapplan():
+def asp():
     """Test for asp solver"""
     infos = grid_from_file("maps/level8.txt")
-    sap = creation_map(infos)
-    with open("solver_asp.lp", "w") as f:
-        f.write(sap)
+    asp_code = creation_map(infos)
+    with open("solver_asp.lp", "w", encoding="utf-8") as f:
+        f.write(asp_code)
     exec_asp("solver_asp.lp")
 
 
 if __name__ == "__main__":
     # state_space_search()
-    print(sapplan())
+    print(asp())
