@@ -82,6 +82,15 @@ def parse_grid(file_dict: dict) -> (Map, State):
                 boxes.add((j, i))
             elif char == "M":
                 mobs.add((j, i))
+            elif char == "O":
+                boxes.add((j, i))
+                spikes.add((j, i))
+            elif char == "P":
+                boxes.add((j, i))
+                closed_traps.add((j, i))
+            elif char == "Q":
+                boxes.add((j, i))
+                open_traps.add((j, i))
 
     return Map(
         walls=frozenset(walls),
