@@ -1,6 +1,6 @@
 """ Helltaker Solver """
 import heapq
-from typing import NamedTuple, Tuple, Callable, FrozenSet, List, Dict, Optional
+from typing import NamedTuple, Tuple, Callable, FrozenSet, List, Dict, Optional, Set
 from collections import deque
 from numpy import array
 
@@ -13,6 +13,7 @@ class NoSolutionException(Exception):
     """Exception raised when no solution is found"""
 
 
+Position = Tuple[int, int]
 State = NamedTuple(
     "State",
     [
@@ -185,7 +186,7 @@ def check_for_key(state: State) -> State:
         return State(
             hero=state.hero,
             key=(-1, -1),
-            lock=(-1, -1),
+            lock=state.lock,
             depth=state.depth,
             open_traps=state.open_traps,
             closed_traps=state.closed_traps,
@@ -278,13 +279,13 @@ def check_for_trap(state: State) -> State:
     return state
 
 
-def move_top_factory(_map: Map) -> Action:
-    """Create an action that moves the hero one step up"""
+def move_factory(_map: Map, direction: Callable[[Position], Position]) -> Action:
+    """Create an action that moves the hero one step in the given direction"""
 
     def move_top(state: State) -> State:
-        """Move the hero one step up"""
+        """Move the hero one step in the given direction"""
         return State(
-            hero=(state.hero[0], state.hero[1] - 1),
+            hero=direction(state.hero),
             key=state.key,
             lock=state.lock,
             depth=state.depth + 1,
@@ -300,10 +301,10 @@ def move_top_factory(_map: Map) -> Action:
     return Action(
         preconditions=frozenset(
             [
-                lambda s: (s.hero[0], s.hero[1] - 1) not in _map.walls,
-                lambda s: (s.hero[0], s.hero[1] - 1) not in s.boxes,
-                lambda s: top(s.hero) not in s.mobs,
-                lambda s: (s.hero[0], s.hero[1] - 1) != s.lock,
+                lambda s: direction(s.hero) not in _map.walls,
+                lambda s: direction(s.hero) not in s.boxes,
+                lambda s: direction(s.hero) not in s.mobs,
+                lambda s: direction(s.hero) != s.lock,
             ]
         ),
         effects=[
@@ -317,131 +318,14 @@ def move_top_factory(_map: Map) -> Action:
     )
 
 
-def move_bottom_factory(_map: Map) -> Action:
-    """Create an action that moves the hero one step down"""
-
-    def move_bottom(state: State) -> State:
-        """Move the hero one step down"""
-        return State(
-            hero=(state.hero[0], state.hero[1] + 1),
-            key=state.key,
-            lock=state.lock,
-            depth=state.depth + 1,
-            open_traps=state.open_traps,
-            closed_traps=state.closed_traps,
-            boxes=state.boxes,
-            mobs=state.mobs,
-        )
-
-    check_for_spike = check_for_spike_factory(_map)
-    check_for_kills = check_for_kills_factory(_map)
-
-    return Action(
-        preconditions=frozenset(
-            [
-                lambda s: (s.hero[0], s.hero[1] + 1) not in _map.walls,
-                lambda s: bottom(s.hero) not in s.mobs,
-                lambda s: (s.hero[0], s.hero[1] + 1) not in s.boxes,
-                lambda s: (s.hero[0], s.hero[1] + 1) != s.lock,
-            ]
-        ),
-        effects=[
-            move_bottom,
-            check_for_key,
-            check_for_spike,
-            switch_traps,
-            check_for_trap,
-            check_for_kills,
-        ],
-    )
-
-
-def move_left_factory(_map: Map) -> Action:
-    """Create an action that moves the hero one step left"""
-
-    def move_left(state: State) -> State:
-        """Move the hero one step left"""
-        return State(
-            hero=(state.hero[0] - 1, state.hero[1]),
-            key=state.key,
-            lock=state.lock,
-            depth=state.depth + 1,
-            open_traps=state.open_traps,
-            closed_traps=state.closed_traps,
-            boxes=state.boxes,
-            mobs=state.mobs,
-        )
-
-    check_for_spike = check_for_spike_factory(_map)
-    check_for_kills = check_for_kills_factory(_map)
-
-    return Action(
-        preconditions=frozenset(
-            [
-                lambda s: (s.hero[0] - 1, s.hero[1]) not in _map.walls,
-                lambda s: left(s.hero) not in s.mobs,
-                lambda s: (s.hero[0] - 1, s.hero[1]) not in s.boxes,
-                lambda s: (s.hero[0] - 1, s.hero[1]) != s.lock,
-            ]
-        ),
-        effects=[
-            move_left,
-            check_for_key,
-            check_for_spike,
-            switch_traps,
-            check_for_trap,
-            check_for_kills,
-        ],
-    )
-
-
-def move_right_factory(_map: Map) -> Action:
-    """Create an action that moves the hero one step right"""
-
-    def move_right(state: State) -> State:
-        """Move the hero one step right"""
-        return State(
-            hero=(state.hero[0] + 1, state.hero[1]),
-            key=state.key,
-            lock=state.lock,
-            depth=state.depth + 1,
-            open_traps=state.open_traps,
-            closed_traps=state.closed_traps,
-            boxes=state.boxes,
-            mobs=state.mobs,
-        )
-
-    check_for_spike = check_for_spike_factory(_map)
-    check_for_kills = check_for_kills_factory(_map)
-
-    return Action(
-        preconditions=frozenset(
-            [
-                lambda s: (s.hero[0] + 1, s.hero[1]) not in _map.walls,
-                lambda s: right(s.hero) not in s.mobs,
-                lambda s: (s.hero[0] + 1, s.hero[1]) not in s.boxes,
-                lambda s: (s.hero[0] + 1, s.hero[1]) != s.lock,
-            ]
-        ),
-        effects=[
-            move_right,
-            check_for_key,
-            check_for_spike,
-            switch_traps,
-            check_for_trap,
-            check_for_kills,
-        ],
-    )
-
-
-def push_top_factory(_map: Map) -> Action:
-    """Create an action that pushes the box on top of the hero"""
+def push_top_factory(_map: Map, direction: Callable[[Position], Position]) -> Action:
+    """Create an action that pushes the box the given direction"""
 
     def push_top(state: State) -> State:
-        """Push the box on top of the hero"""
-        boxes = [
-            b for b in state.boxes if not b == (state.hero[0], state.hero[1] - 1)
-        ] + [(state.hero[0], state.hero[1] - 2)]
+        """Push the box the given direction"""
+        boxes = [b for b in state.boxes if not b == direction(state.hero)] + [
+            direction(direction(state.hero))
+        ]
         return State(
             hero=state.hero,
             key=state.key,
@@ -458,12 +342,12 @@ def push_top_factory(_map: Map) -> Action:
     return Action(
         preconditions=frozenset(
             [
-                lambda s: (s.hero[0], s.hero[1] - 1) in s.boxes,
-                lambda s: (s.hero[0], s.hero[1] - 2) not in _map.walls,
-                lambda s: (s.hero[0], s.hero[1] - 2) not in _map.demons,
-                lambda s: (s.hero[0], s.hero[1] - 2) not in s.mobs,
-                lambda s: (s.hero[0], s.hero[1] - 2) not in s.boxes,
-                lambda s: (s.hero[0], s.hero[1] - 2) != s.lock,
+                lambda s: direction(s.hero) in s.boxes,
+                lambda s: direction(direction(s.hero)) not in _map.walls,
+                lambda s: direction(direction(s.hero)) not in _map.demons,
+                lambda s: direction(direction(s.hero)) not in s.mobs,
+                lambda s: direction(direction(s.hero)) not in s.boxes,
+                lambda s: direction(direction(s.hero)) != s.lock,
             ]
         ),
         effects=[
@@ -840,6 +724,122 @@ def push_mob_right_factory(_map: Map) -> Action:
     )
 
 
+def open_lock_top_factory(_map: Map) -> Action:
+    """Creates an Action that opens a lock at the top of the hero"""
+
+    def open_lock(state: State) -> State:
+        """Open the lock"""
+        return State(
+            hero=state.hero,
+            key=state.key,
+            lock=(-1, -1),
+            depth=state.depth,
+            open_traps=state.open_traps,
+            closed_traps=state.closed_traps,
+            boxes=state.boxes,
+            mobs=state.mobs,
+        )
+
+    return Action(
+        preconditions=frozenset(
+            [
+                lambda s: s.lock == top(s.hero),
+                lambda s: s.key == (-1, -1),
+            ],
+        ),
+        effects=[
+            open_lock,
+        ],
+    )
+
+
+def open_lock_bottom_factory(_map: Map) -> Action:
+    """Creates an Action that opens a lock at the bottom of the hero"""
+
+    def open_lock(state: State) -> State:
+        """Open the lock"""
+        return State(
+            hero=state.hero,
+            key=state.key,
+            lock=(-1, -1),
+            depth=state.depth,
+            open_traps=state.open_traps,
+            closed_traps=state.closed_traps,
+            boxes=state.boxes,
+            mobs=state.mobs,
+        )
+
+    return Action(
+        preconditions=frozenset(
+            [
+                lambda s: s.lock == bottom(s.hero),
+                lambda s: s.key == (-1, -1),
+            ],
+        ),
+        effects=[
+            open_lock,
+        ],
+    )
+
+
+def open_lock_left_factory(_map: Map) -> Action:
+    """Creates an Action that opens a lock at the left of the hero"""
+
+    def open_lock(state: State) -> State:
+        """Open the lock"""
+        return State(
+            hero=state.hero,
+            key=state.key,
+            lock=(-1, -1),
+            depth=state.depth,
+            open_traps=state.open_traps,
+            closed_traps=state.closed_traps,
+            boxes=state.boxes,
+            mobs=state.mobs,
+        )
+
+    return Action(
+        preconditions=frozenset(
+            [
+                lambda s: s.lock == left(s.hero),
+                lambda s: s.key == (-1, -1),
+            ],
+        ),
+        effects=[
+            open_lock,
+        ],
+    )
+
+
+def open_lock_right_factory(_map: Map) -> Action:
+    """Creates an Action that opens a lock at the right of the hero"""
+
+    def open_lock(state: State) -> State:
+        """Open the lock"""
+        return State(
+            hero=state.hero,
+            key=state.key,
+            lock=(-1, -1),
+            depth=state.depth,
+            open_traps=state.open_traps,
+            closed_traps=state.closed_traps,
+            boxes=state.boxes,
+            mobs=state.mobs,
+        )
+
+    return Action(
+        preconditions=frozenset(
+            [
+                lambda s: s.lock == right(s.hero),
+                lambda s: s.key == (-1, -1),
+            ],
+        ),
+        effects=[
+            open_lock,
+        ],
+    )
+
+
 helltaker_actions_factories = {
     "move_top": move_top_factory,
     "move_bottom": move_bottom_factory,
@@ -857,14 +857,24 @@ helltaker_actions_factories = {
     "wait_bottom": wait_bottom_factory,
     "wait_left": wait_left_factory,
     "wait_right": wait_right_factory,
+    "open_lock_top": open_lock_top_factory,
+    "open_lock_bottom": open_lock_bottom_factory,
+    "open_lock_left": open_lock_left_factory,
+    "open_lock_right": open_lock_right_factory,
 }
 
 
 def create_actions(
-    actions_factories: Dict[str, Callable[[Map], Callable]], _map: Map
+    actions_factories: Dict[str, Callable[[Map], Callable]],
+    _map: Map,
+    directions: Dict[str, Callable[[Tuple[int, int]], Tuple[int, int]]],
 ) -> Dict[str, Action]:
     """Create actions from actions factories"""
-    return {name: factory(_map) for name, factory in actions_factories.items()}
+    return {
+        name + "_" + dirname: factory(_map, direction)
+        for name, factory in actions_factories.items()
+        for dirname, direction in directions.items()
+    }
 
 
 def execute(state: State, action: Action) -> State:
@@ -911,20 +921,18 @@ def solve(
     current_state = state
     while queue:
         current_state = queue.popleft()
-        visited.add(standardize_depth(current_state))
         if is_final(current_state, map_):
             break
         for name, action in actions.items():
             try:
                 new_state = execute(current_state, action)
+                std_new_state = standardize_depth(new_state)
             except PrecondNotMetException:
                 continue
-            if (
-                standardize_depth(new_state) not in visited
-                and new_state.depth <= map_.max_depth
-            ):
+            if std_new_state not in visited and new_state.depth <= map_.max_depth:
                 previous_dict[new_state] = (current_state, name)
                 queue.append(new_state)
+                visited.add(std_new_state)
     if not is_final(current_state, map_):
         raise NoSolutionException(f"No solution found in {map_.max_depth} actions.")
 
@@ -936,7 +944,7 @@ def basic_manhattan_distance(map_: Map, state: State) -> int:
     demons = map_.demons
     hero = state.hero
     distances = [abs(demon[0] - hero[0]) + abs(demon[1] - hero[1]) for demon in demons]
-    return min(distances) + state.depth
+    return min(distances) + state.depth - 5 * (state.key == (-1, -1))
 
 
 def solve_a_star(
@@ -955,18 +963,17 @@ def solve_a_star(
     current_state = state
     while heap:
         _, current_state = heapq.heappop(heap)
-        visited.add(standardize_depth(current_state))
         if is_final(current_state, map_) and current_state.depth <= map_.max_depth:
             break
         for name, action in actions.items():
             try:
                 new_state = execute(current_state, action)
+                std_new_state = standardize_depth(new_state)
             except PrecondNotMetException:
                 continue
-            if standardize_depth(new_state) in visited:
-                continue
-            if new_state.depth <= map_.max_depth:
+            if std_new_state not in visited and new_state.depth <= map_.max_depth:
                 previous_dict[new_state] = (current_state, name)
+                visited.add(std_new_state)
                 heapq.heappush(heap, (heuristic(map_, new_state), new_state))
     if not is_final(current_state, map_):
         raise NoSolutionException(f"No solution found in {map_.max_depth} actions.")
