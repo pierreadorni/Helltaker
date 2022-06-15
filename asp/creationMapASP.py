@@ -6,9 +6,8 @@ def exec_asp(filename: str, cmd: str = "clingo", encoding: str = "utf8"):
     result = subprocess.run(
         ["clingo", "solver_asp.lp"], capture_output=True
     ).stdout.decode("utf-8")
-    print(result)
     chemin = result.split("\n")[4]
-    print(formater_chemin(chemin))
+    return formater_chemin(chemin)
 
 
 def formater_chemin(chemin: str):
@@ -21,7 +20,7 @@ def formater_chemin(chemin: str):
         target = action[3 : action.find(",")]
         position = int(action[action.find(",") + 1 : action.find(",)")])
         if target in ["right", "push_box_right", "push_mob_right", "kill_right"]:
-            actions += [[position, "r"]]
+            actions += [[position, "d"]]
         elif target in ["left", "push_box_left", "push_mob_left", "kill_left"]:
             actions += [[position, "g"]]
         elif target in ["top", "push_box_top", "push_mob_top", "kill_top"]:
