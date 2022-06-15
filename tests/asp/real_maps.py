@@ -48,7 +48,6 @@ class RealMapsASP(unittest.TestCase):
         with open("solver_asp.lp", "w", encoding="utf-8") as f:
             f.write(asp_code)
         chemin = exec_asp("solver_asp.lp")
-        print(str_plan_to_actions_names(chemin, filename))
         self.assertTrue(
             is_valid(
                 _map,

@@ -1,25 +1,31 @@
 %% clingo solver_asp.lp
-#const life = 33. 
+#const life = 23. 
 step(0..life-1).
+cell(1,4).
+cell(2,3).
+init(door(2,4)).
 cell(2,4).
+init(box(2,5)).
 cell(2,5).
 cell(2,6).
-init(box(3,4)).
+init(at(3,1)).
+cell(3,1).
+init(trap(3,3,0)).
+cell(3,3).
 cell(3,4).
-init(door(3,5)).
+init(box(3,5)).
 cell(3,5).
-init(box(3,6)).
 cell(3,6).
-init(box(4,2)).
-cell(4,2).
-init(box(4,4)).
+cell(4,1).
+cell(4,3).
+init(trap(4,4,0)).
 cell(4,4).
 cell(4,5).
+init(trap(4,6,0)).
 cell(4,6).
-cell(4,8).
-init(box(5,1)).
+init(mob(5,1)).
 cell(5,1).
-cell(5,2).
+init(box(5,3)).
 cell(5,3).
 init(box(5,4)).
 cell(5,4).
@@ -27,36 +33,20 @@ init(box(5,5)).
 cell(5,5).
 init(box(5,6)).
 cell(5,6).
-cell(5,7).
-cell(5,8).
-init(key(5,9)).
-init(keyObtained(0)).
-cell(5,9).
+init(trap(6,1,0)).
 cell(6,1).
-init(box(6,2)).
 cell(6,2).
-init(box(6,3)).
+init(trap(6,3,0)).
 cell(6,3).
-init(box(6,4)).
 cell(6,4).
 cell(6,5).
+init(trap(6,6,0)).
 cell(6,6).
-init(box(6,7)).
-cell(6,7).
-init(box(6,8)).
-cell(6,8).
-cell(6,9).
-init(at(7,2)).
-cell(7,2).
-cell(7,3).
-init(box(7,4)).
-cell(7,4).
-cell(7,5).
+init(key(7,6)).
+init(keyObtained(0)).
 cell(7,6).
-init(box(7,7)).
-cell(7,7).
-cell(7,8).
 goal(at(2,5)).
+goal(at(1,4)).
 
 %%  Les actions-----------------------------------------------------------------------
 action(right; left; top; bottom; push_box_right; push_box_left; push_box_top; push_box_bottom; push_mob_right ;push_mob_left; push_mob_top; push_mob_bottom; kill_right; kill_left; kill_top; kill_bottom; waiting).
